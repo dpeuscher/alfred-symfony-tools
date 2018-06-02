@@ -106,7 +106,7 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
             return [];
         }
         $argument = $input->getArgument($name);
-        if (!isset($argument)) {
+        if (empty($argument)) {
             return [];
         }
         $matches = [];
