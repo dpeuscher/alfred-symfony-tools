@@ -1,6 +1,7 @@
 {
-    "type": "dpeuscher/alfred-symfony-tools",
-    "license": "proprietary",
+    "package": "dpeuscher/alfred-symfony-tools",
+    "type": "library",
+    "license": "MIT",
     "require": {
         "php": "^7.1",
         "ext-ctype": "*",
