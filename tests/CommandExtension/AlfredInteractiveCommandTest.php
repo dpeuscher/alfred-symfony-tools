@@ -94,6 +94,10 @@ class AlfredInteractiveCommandTest extends TestCase
                 'jklabc'    => 'jkl abc',
             ],
             'test5' => [],
+            'test6' => [
+                'abc' => 'abc',
+                'def' => 'def',
+            ],
         ];
 
         $this->assertEquals($expected, $this->getPrivateFields->call($this->command, 'acFieldsList'));
@@ -125,6 +129,10 @@ class AlfredInteractiveCommandTest extends TestCase
                 'jklabc'    => 'jkl abc',
             ],
             'test5' => [],
+            'test6' => [
+                'abc' => 'abc',
+                'def' => 'def',
+            ],
         ];
 
         $this->assertEquals($expected, $this->getPrivateFields->call($this->command, 'acFieldsList'));
@@ -205,13 +213,15 @@ class AlfredInteractiveCommandTest extends TestCase
         ]);
         $this->command->addArgument('test4', InputArgument::OPTIONAL, '', null);
         $this->command->addArgument('test5', InputArgument::OPTIONAL, '', null, []);
+        $this->command->addArgument('test6', InputArgument::OPTIONAL, '', null);
         $input = new ArrayInput($values, new InputDefinition([
             new InputArgument('test'),
             new InputArgument('test2'),
             new InputArgument('test3'),
             new InputArgument('test4'),
-            new InputArgument('test5'),
+            new InputArgument('test6'),
         ]));
+        $this->command->addArgumentsAllowedValues('test6', ['abc', 'def']);
         return $input;
     }
 }

@@ -34,10 +34,15 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
     public function addArgument($name, $mode = null, $description = '', $default = null, array $allowedValues = null)
     {
         if (isset($allowedValues)) {
-            $this->acFields[] = $name;
-            $this->acFieldsList[$name] = $allowedValues;
+            $this->addArgumentsAllowedValues($name,$allowedValues);
         }
         return parent::addArgument($name, $mode, $description, $default);
+    }
+
+    public function addArgumentsAllowedValues($name, array $allowedValues)
+    {
+        $this->acFields[] = $name;
+        $this->acFieldsList[$name] = $allowedValues;
     }
 
     public function getArgumentIdentifier(InputInterface $input, string $name)
