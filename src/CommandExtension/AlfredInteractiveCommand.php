@@ -107,7 +107,7 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
         }
         $argument = $input->getArgument($name);
         if (empty($argument)) {
-            return [];
+            return $this->acFieldsList[$name];
         }
         $matches = [];
         foreach ($this->acFieldsList[$name] as $key => $value) {
