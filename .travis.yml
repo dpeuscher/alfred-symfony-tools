@@ -5,7 +5,7 @@ php:
   - nightly
 
 install:
-  - composer install
+  - composer install --dev
 
 script:
   - vendor/bin/phpunit --coverage-clover=coverage.xml
