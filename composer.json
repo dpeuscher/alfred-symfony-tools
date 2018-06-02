@@ -1,5 +1,5 @@
 {
-    "package": "dpeuscher/alfred-symfony-tools",
+    "name": "dpeuscher/alfred-symfony-tools",
     "type": "library",
     "license": "MIT",
     "require": {
