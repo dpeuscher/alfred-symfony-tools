@@ -2,7 +2,7 @@
     "type": "dpeuscher/alfred-symfony-tools",
     "license": "proprietary",
     "require": {
-        "php": "^7.1.0",
+        "php": "^7.*",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "symfony/framework-bundle": "^4.0",
