@@ -417,6 +417,20 @@ class AlfredInteractiveCommandTest extends TestCase
         }
     }
 
+    public function testCustomInputHandlerQuotesAreRemoved()
+    {
+        $input = $this->setupArguments(['test' => 'abc', 'test2' => '\'ABC\'']);
+
+        $output = new BufferedOutput();
+
+        $this->command->addInputHandler(['test', 'test2'], function ($arguments) {
+            $this->assertEquals($arguments['test2'], 'ABC');
+        });
+
+        $this->command->setLogger(new NullLogger());
+        $this->runProtectedExecute->call($this->command, $input, $output);
+    }
+
     /**
      * @expectedException \Exception
      * @expectedExceptionMessage There should only be Workflows returned
