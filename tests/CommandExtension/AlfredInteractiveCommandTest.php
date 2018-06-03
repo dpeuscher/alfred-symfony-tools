@@ -4,6 +4,7 @@ namespace Dpeuscher\AlfredSymfonyTools\Tests\CommandExtension;
 
 use Alfred\Workflows\Workflow;
 use Dpeuscher\AlfredSymfonyTools\Alfred\WorkflowHelper;
+use Dpeuscher\AlfredSymfonyTools\Alfred\WorkflowResult;
 use Dpeuscher\AlfredSymfonyTools\CommandExtension\AlfredInteractiveCommand;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -263,6 +264,143 @@ class AlfredInteractiveCommandTest extends TestCase
                 $this->assertEquals($value, $entry[$key]);
             }
         }
+    }
+
+    public function testDefaultInputHandler()
+    {
+        $input = $this->setupArguments(['test' => 'abc', 'test2' => 'ABC']);
+
+        $output = new BufferedOutput();
+
+        $this->command->setLogger(new NullLogger());
+        $this->runProtectedExecute->call($this->command, $input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+
+        $expected = [
+            [
+                'autocomplete' => 'abc ABC abcdef1',
+                'title'        => 'abc def1',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'abc ABC abcghi',
+                'title'        => 'abc ghi',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'abc ABC abcdefghi',
+                'title'        => 'abc def ghi',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'abc ABC jklmno',
+                'title'        => 'jkl mno pqr',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'abc ABC jklabc',
+                'title'        => 'jkl abc',
+                'valid'        => false,
+            ],
+        ];
+
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
+    public function testCustomInputHandler()
+    {
+        $input = $this->setupArguments(['test' => 'abc', 'test2' => 'ABC']);
+
+        $output = new BufferedOutput();
+
+        $this->command->addInputHandler(['test', 'test2'], function ($arguments) {
+            /** @var WorkflowResult[] $genericResults */
+            $genericResults = $arguments['genericResults'];
+            foreach ($genericResults as $result) {
+                $result->setValid(true);
+            }
+            return $genericResults;
+        });
+
+        $this->command->setLogger(new NullLogger());
+        $this->runProtectedExecute->call($this->command, $input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+
+        $expected = [
+            [
+                'autocomplete' => 'abc ABC abcdef1',
+                'title'        => 'abc def1',
+                'valid'        => true,
+            ],
+            [
+                'autocomplete' => 'abc ABC abcghi',
+                'title'        => 'abc ghi',
+                'valid'        => true,
+            ],
+            [
+                'autocomplete' => 'abc ABC abcdefghi',
+                'title'        => 'abc def ghi',
+                'valid'        => true,
+            ],
+            [
+                'autocomplete' => 'abc ABC jklmno',
+                'title'        => 'jkl mno pqr',
+                'valid'        => true,
+            ],
+            [
+                'autocomplete' => 'abc ABC jklabc',
+                'title'        => 'jkl abc',
+                'valid'        => true,
+            ],
+        ];
+
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
+    /**
+     * @expectedException \Exception
+     * @expectedExceptionMessage There should only be Workflows returned
+     */
+    public function testThrowsExceptionOnWrongReturnInCustomInputHandler1()
+    {
+        $input = $this->setupArguments(['test' => 'abc', 'test2' => 'ABC']);
+
+        $output = new BufferedOutput();
+
+        $this->command->addInputHandler(['test', 'test2'], function () {
+            return ['this is not a WorkflowResult but a string'];
+        });
+
+        $this->command->setLogger(new NullLogger());
+        $this->runProtectedExecute->call($this->command, $input, $output);
+    }
+
+    /**
+     * @expectedException \Exception
+     * @expectedExceptionMessage There should only be Workflows returned
+     */
+    public function testThrowsExceptionOnWrongReturnInCustomInputHandler2()
+    {
+        $input = $this->setupArguments(['test' => 'abc', 'test2' => 'ABC']);
+
+        $output = new BufferedOutput();
+
+        $this->command->addInputHandler(['test', 'test2'], function () {
+            return 'this is not a WorkflowResult but a string';
+        });
+
+        $this->command->setLogger(new NullLogger());
+        $this->runProtectedExecute->call($this->command, $input, $output);
     }
 
     public function testAddInputHandlerWithNonAcParameter()

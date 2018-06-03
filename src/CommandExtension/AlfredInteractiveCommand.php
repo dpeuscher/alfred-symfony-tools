@@ -20,6 +20,11 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
     use LoggerAwareTrait;
 
     /**
+     * @var WorkflowHelper
+     */
+    protected $workflowHelper;
+
+    /**
      * @var string[]
      */
     private $acFields = [];
@@ -48,11 +53,6 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
      * @var bool
      */
     private $updatedBestMatches = false;
-
-    /**
-     * @var WorkflowHelper
-     */
-    protected $workflowHelper;
 
     /**
      * @param WorkflowHelper $workflowHelper
@@ -162,6 +162,22 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
         return null;
     }
 
+    public function addInputHandler(array $setParameters, ?callable $callable = null)
+    {
+        if (!isset($callable)) {
+            $callable = [$this, 'genericParameterHandler'];
+        }
+        if (in_array($setParameters, $this->argumentFunctionsCombinations)) {
+            $key = array_search($setParameters, $this->argumentFunctionsCombinations);
+            $this->argumentFunctionsCombinations[$key] = $setParameters;
+            $this->argumentFunctions[$key] = $callable;
+        } else {
+            $count = count($this->argumentFunctionsCombinations);
+            $this->argumentFunctionsCombinations[$count] = $setParameters;
+            $this->argumentFunctions[$count] = $callable;
+        }
+    }
+
     /**
      * @param string $level
      * @param string $message
@@ -187,22 +203,6 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
         }
     }
 
-    public function addInputHandler(array $setParameters, ?callable $callable = null)
-    {
-        if (!isset($callable)) {
-            $callable = [$this, 'genericParameterHandler'];
-        }
-        if (in_array($setParameters, $this->argumentFunctionsCombinations)) {
-            $key = array_search($setParameters, $this->argumentFunctionsCombinations);
-            $this->argumentFunctionsCombinations[$key] = $setParameters;
-            $this->argumentFunctions[$key] = $callable;
-        } else {
-            $count = count($this->argumentFunctionsCombinations);
-            $this->argumentFunctionsCombinations[$count] = $setParameters;
-            $this->argumentFunctions[$count] = $callable;
-        }
-    }
-
     protected function genericParameterHandler($arguments)
     {
         $dynamicArguments = null;
@@ -216,17 +216,25 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
             }
             $command[] = $value;
         }
+        $results = [];
         if (isset($argument) && isset($dynamicArguments)) {
             foreach ($arguments[$dynamicArguments] as $dynamicArgument) {
                 $result = new WorkflowResult();
                 $result->setValid(false);
-                $result->setAutocomplete(trim(implode(' ',$command).' '.$dynamicArgument));
+                $result->setAutocomplete(trim(implode(' ', $command) . ' ' . $dynamicArgument));
                 $result->setTitle($this->acFieldsList[$argument][$dynamicArgument]);
-                $this->workflowHelper->applyResult($result);
+                $results[] = $result;
             }
         }
+        return $results;
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int|null|void
+     * @throws \Exception
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $setParameters = [];
@@ -249,8 +257,24 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
             }
         }
         $key = array_search($setParameters, $this->argumentFunctionsCombinations);
-        $callable = $this->argumentFunctions[$key];
-        $callable($arguments);
+        $callable = [$this, 'genericParameterHandler'];
+        $genericResults = $callable($arguments);
+        $return = $genericResults;
+        if (isset($this->argumentFunctions[$key])) {
+            $callable = $this->argumentFunctions[$key];
+            $arguments['genericResults'] = $genericResults;
+            $return = $callable($arguments);
+        }
+        if (is_array($return)) {
+            foreach ($return as $result) {
+                if (!$result instanceof WorkflowResult) {
+                    throw new \Exception("There should only be Workflows returned");
+                }
+                $this->workflowHelper->applyResult($result);
+            }
+        } elseif (!is_null($return)) {
+            throw new \Exception("There should only be Workflows returned");
+        }
         $output->write($this->workflowHelper);
     }
 }
