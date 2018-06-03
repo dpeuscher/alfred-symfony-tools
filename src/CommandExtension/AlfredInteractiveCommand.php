@@ -227,7 +227,7 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
         }
     }
 
-    public function handleInputs(InputInterface $input, OutputInterface $output)
+    public function execute(InputInterface $input, OutputInterface $output)
     {
         $setParameters = [];
         $arguments = [];

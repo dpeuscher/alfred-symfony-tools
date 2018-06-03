@@ -215,7 +215,7 @@ class AlfredInteractiveCommandTest extends TestCase
         $this->command->addInputHandler(['test', 'test2']);
 
         $this->command->setLogger(new NullLogger());
-        $this->command->handleInputs($input, $output);
+        $this->command->execute($input, $output);
 
         $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
 
@@ -263,7 +263,7 @@ class AlfredInteractiveCommandTest extends TestCase
         $this->command->addInputHandler(['test', 'test2', 'test3', 'test4']);
 
         $this->command->setLogger(new NullLogger());
-        $this->command->handleInputs($input, $output);
+        $this->command->execute($input, $output);
 
         $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
 
@@ -298,7 +298,7 @@ class AlfredInteractiveCommandTest extends TestCase
         $this->command->addInputHandler(['test']);
 
         $this->command->setLogger(new NullLogger());
-        $this->command->handleInputs($input, $output);
+        $this->command->execute($input, $output);
 
         $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
 
