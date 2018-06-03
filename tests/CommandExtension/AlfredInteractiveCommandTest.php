@@ -12,7 +12,9 @@ use Psr\Log\NullLogger;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputDefinition;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * @covers \Dpeuscher\AlfredSymfonyTools\CommandExtension\AlfredInteractiveCommand
@@ -31,12 +33,21 @@ class AlfredInteractiveCommandTest extends TestCase
      */
     protected $getPrivateFields;
 
+    /**
+     * @var \Closure
+     */
+    protected $runProtectedExecute;
+
     public function setup()
     {
         $this->command = new AlfredInteractiveCommand();
         $this->command->setWorkflowHelper(new WorkflowHelper('./', new Workflow()));
         $this->getPrivateFields = function ($field) {
             return $this->$field;
+        };
+        $this->runProtectedExecute = function (InputInterface $input, OutputInterface $output) {
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $this->execute($input, $output);
         };
     }
 
@@ -215,7 +226,7 @@ class AlfredInteractiveCommandTest extends TestCase
         $this->command->addInputHandler(['test', 'test2']);
 
         $this->command->setLogger(new NullLogger());
-        $this->command->execute($input, $output);
+        $this->runProtectedExecute->call($this->command, $input, $output);
 
         $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
 
@@ -263,7 +274,7 @@ class AlfredInteractiveCommandTest extends TestCase
         $this->command->addInputHandler(['test', 'test2', 'test3', 'test4']);
 
         $this->command->setLogger(new NullLogger());
-        $this->command->execute($input, $output);
+        $this->runProtectedExecute->call($this->command, $input, $output);
 
         $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
 
@@ -298,7 +309,7 @@ class AlfredInteractiveCommandTest extends TestCase
         $this->command->addInputHandler(['test']);
 
         $this->command->setLogger(new NullLogger());
-        $this->command->execute($input, $output);
+        $this->runProtectedExecute->call($this->command, $input, $output);
 
         $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
 
