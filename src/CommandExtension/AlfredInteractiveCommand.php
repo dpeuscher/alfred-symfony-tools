@@ -2,11 +2,14 @@
 
 namespace Dpeuscher\AlfredSymfonyTools\CommandExtension;
 
+use Dpeuscher\AlfredSymfonyTools\Alfred\WorkflowHelper;
+use Dpeuscher\AlfredSymfonyTools\Alfred\WorkflowResult;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LogLevel;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * @category  alfred-symfony-tools
@@ -22,6 +25,21 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
     private $acFields = [];
 
     /**
+     * @var string[]
+     */
+    private $arguments = [];
+
+    /**
+     * @var callable[]
+     */
+    private $argumentFunctions = [];
+
+    /**
+     * @var string[]
+     */
+    private $argumentFunctionsCombinations = [];
+
+    /**
      * @var string[][]
      */
     private $acFieldsList = [];
@@ -31,10 +49,24 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
      */
     private $updatedBestMatches = false;
 
+    /**
+     * @var WorkflowHelper
+     */
+    protected $workflowHelper;
+
+    /**
+     * @param WorkflowHelper $workflowHelper
+     */
+    public function setWorkflowHelper(WorkflowHelper $workflowHelper): void
+    {
+        $this->workflowHelper = $workflowHelper;
+    }
+
     public function addArgument($name, $mode = null, $description = '', $default = null, array $allowedValues = null)
     {
+        $this->arguments[] = $name;
         if (isset($allowedValues)) {
-            $this->addArgumentsAllowedValues($name,$allowedValues);
+            $this->addArgumentsAllowedValues($name, $allowedValues);
         }
         return parent::addArgument($name, $mode, $description, $default);
     }
@@ -82,7 +114,7 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
                         if ($searchString === $value) {
                             continue;
                         }
-                        if (stristr(str_replace(' ', '', $searchString),$keyCandidate) !== false) {
+                        if (stristr(str_replace(' ', '', $searchString), $keyCandidate) !== false) {
                             continue 2;
                         }
                     }
@@ -111,7 +143,10 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
         }
         $matches = [];
         foreach ($this->acFieldsList[$name] as $key => $value) {
-            if (stristr(str_replace(' ', '', $value), $argument) !== false) {
+            if ($key == $argument) {
+                $matches[$key] = $value;
+            }
+            if (strstr(str_replace(' ', '', $value), $argument) !== false) {
                 $matches[$key] = $value;
             }
         }
@@ -150,5 +185,72 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
             ][$level]);
             //@codeCoverageIgnoreEnd
         }
+    }
+
+    public function addInputHandler(array $setParameters, ?callable $callable = null)
+    {
+        if (!isset($callable)) {
+            $callable = [$this, 'genericParameterHandler'];
+        }
+        if (in_array($setParameters, $this->argumentFunctionsCombinations)) {
+            $key = array_search($setParameters, $this->argumentFunctionsCombinations);
+            $this->argumentFunctionsCombinations[$key] = $setParameters;
+            $this->argumentFunctions[$key] = $callable;
+        } else {
+            $count = count($this->argumentFunctionsCombinations);
+            $this->argumentFunctionsCombinations[$count] = $setParameters;
+            $this->argumentFunctions[$count] = $callable;
+        }
+    }
+
+    protected function genericParameterHandler($arguments)
+    {
+        $dynamicArguments = null;
+        $command = [];
+        foreach ($arguments as $argument => $value) {
+            if (is_array($value)) {
+                if (in_array($argument, $this->acFields)) {
+                    $dynamicArguments = $argument;
+                }
+                break;
+            }
+            $command[] = $value;
+        }
+        if (isset($argument) && isset($dynamicArguments)) {
+            foreach ($arguments[$dynamicArguments] as $dynamicArgument) {
+                $result = new WorkflowResult();
+                $result->setValid(false);
+                $result->setAutocomplete(trim(implode(' ',$command).' '.$dynamicArgument));
+                $result->setTitle($this->acFieldsList[$argument][$dynamicArgument]);
+                $this->workflowHelper->applyResult($result);
+            }
+        }
+    }
+
+    public function handleInputs(InputInterface $input, OutputInterface $output)
+    {
+        $setParameters = [];
+        $arguments = [];
+        foreach ($this->arguments as $argument) {
+            if (in_array($argument, $this->acFields)) {
+                $selectedArgument = $this->getArgumentIdentifier($input, $argument);
+                if ($selectedArgument) {
+                    $setParameters[] = $argument;
+                    $arguments[$argument] = $selectedArgument;
+                } else {
+                    $arguments[$argument] = array_keys($this->getArgumentMatches($input, $argument));
+                }
+            } else {
+                $selectedArgument = $input->getArgument($argument);
+                if ($selectedArgument) {
+                    $setParameters[] = $argument;
+                    $arguments[$argument] = $selectedArgument;
+                }
+            }
+        }
+        $key = array_search($setParameters, $this->argumentFunctionsCombinations);
+        $callable = $this->argumentFunctions[$key];
+        $callable($arguments);
+        $output->write($this->workflowHelper);
     }
 }

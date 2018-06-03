@@ -7,7 +7,7 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "symfony/framework-bundle": "^4.0",
-        "joetannenbaum/alfred-workflow": "0.1.1",
+        "joetannenbaum/alfred-workflow": "^0.1.1",
         "symfony/console": "^4.1",
         "monolog/monolog": "^1.23"
     },

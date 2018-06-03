@@ -2,6 +2,8 @@
 
 namespace Dpeuscher\AlfredSymfonyTools\Tests\CommandExtension;
 
+use Alfred\Workflows\Workflow;
+use Dpeuscher\AlfredSymfonyTools\Alfred\WorkflowHelper;
 use Dpeuscher\AlfredSymfonyTools\CommandExtension\AlfredInteractiveCommand;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -10,9 +12,12 @@ use Psr\Log\NullLogger;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputDefinition;
+use Symfony\Component\Console\Output\BufferedOutput;
 
 /**
  * @covers \Dpeuscher\AlfredSymfonyTools\CommandExtension\AlfredInteractiveCommand
+ * @covers \Dpeuscher\AlfredSymfonyTools\Alfred\WorkflowHelper
+ * @covers \Dpeuscher\AlfredSymfonyTools\Alfred\WorkflowResult
  */
 class AlfredInteractiveCommandTest extends TestCase
 {
@@ -29,6 +34,7 @@ class AlfredInteractiveCommandTest extends TestCase
     public function setup()
     {
         $this->command = new AlfredInteractiveCommand();
+        $this->command->setWorkflowHelper(new WorkflowHelper('./', new Workflow()));
         $this->getPrivateFields = function ($field) {
             return $this->$field;
         };
@@ -76,25 +82,29 @@ class AlfredInteractiveCommandTest extends TestCase
         $this->command->updateBestMatchKeys();
 
         $expected = [
-            'test'  => [
+            'test'    => [
                 'abc' => 'abc def',
                 'ghi' => 'ghi',
                 'jkl' => 'jkl mno pqr',
             ],
-            'test2' => [
+            'test2'   => [
                 'ABC' => 'abc def',
                 'DEF' => 'ghi',
                 'GHI' => 'jkl mno pqr',
             ],
-            'test3' => [
+            'test3'   => [
                 'abcdef1'   => 'abc def1',
                 'abcghi'    => 'abc ghi',
                 'abcdefghi' => 'abc def ghi',
                 'jklmno'    => 'jkl mno pqr',
                 'jklabc'    => 'jkl abc',
             ],
-            'test5' => [],
-            'test6' => [
+            'test4.5' => [
+                'abc' => 'abc',
+                'def' => 'def',
+            ],
+            'test5'   => [],
+            'test6'   => [
                 'abc' => 'abc',
                 'def' => 'def',
             ],
@@ -111,25 +121,29 @@ class AlfredInteractiveCommandTest extends TestCase
         $this->command->updateBestMatchKeys();
 
         $expected = [
-            'test'  => [
+            'test'    => [
                 'abc' => 'abc def',
                 'ghi' => 'ghi',
                 'jkl' => 'jkl mno pqr',
             ],
-            'test2' => [
+            'test2'   => [
                 'ABC' => 'abc def',
                 'DEF' => 'ghi',
                 'GHI' => 'jkl mno pqr',
             ],
-            'test3' => [
+            'test3'   => [
                 'abcdef1'   => 'abc def1',
                 'abcghi'    => 'abc ghi',
                 'abcdefghi' => 'abc def ghi',
                 'jklmno'    => 'jkl mno pqr',
                 'jklabc'    => 'jkl abc',
             ],
-            'test5' => [],
-            'test6' => [
+            'test4.5' => [
+                'abc' => 'abc',
+                'def' => 'def',
+            ],
+            'test5'   => [],
+            'test6'   => [
                 'abc' => 'abc',
                 'def' => 'def',
             ],
@@ -192,6 +206,127 @@ class AlfredInteractiveCommandTest extends TestCase
             'acFieldsList was not updated');
     }
 
+    public function testAddInputHandler()
+    {
+        $input = $this->setupArguments(['test' => 'abc', 'test2' => 'ABC']);
+
+        $output = new BufferedOutput();
+
+        $this->command->addInputHandler(['test', 'test2']);
+
+        $this->command->setLogger(new NullLogger());
+        $this->command->handleInputs($input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+
+        $expected = [
+            [
+                'autocomplete' => 'abc ABC abcdef1',
+                'title'        => 'abc def1',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'abc ABC abcghi',
+                'title'        => 'abc ghi',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'abc ABC abcdefghi',
+                'title'        => 'abc def ghi',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'abc ABC jklmno',
+                'title'        => 'jkl mno pqr',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'abc ABC jklabc',
+                'title'        => 'jkl abc',
+                'valid'        => false,
+            ],
+        ];
+
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
+    public function testAddInputHandlerWithNonAcParameter()
+    {
+        $input = $this->setupArguments(['test' => 'abc', 'test2' => 'DEF', 'test3' => 'jklmno', 'test4' => 'xxx']);
+
+        $output = new BufferedOutput();
+
+        $this->command->addInputHandler(['test', 'test2', 'test3', 'test4']);
+
+        $this->command->setLogger(new NullLogger());
+        $this->command->handleInputs($input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+
+        $expected = [
+            [
+                'autocomplete' => 'abc DEF jklmno xxx abc',
+                'title'        => 'abc',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'abc DEF jklmno xxx def',
+                'title'        => 'def',
+                'valid'        => false,
+            ],
+        ];
+
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
+    public function testAddInputHandlerOverrideExistingCallable()
+    {
+        $input = $this->setupArguments(['test' => 'abc']);
+
+        $output = new BufferedOutput();
+
+        $this->command->addInputHandler(['test']);
+        $this->command->addInputHandler(['test', 'test2']);
+        $this->command->addInputHandler(['test']);
+
+        $this->command->setLogger(new NullLogger());
+        $this->command->handleInputs($input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+
+        $expected = [
+            [
+                'autocomplete' => 'abc ABC',
+                'title'        => 'abc def',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'abc DEF',
+                'title'        => 'ghi',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'abc GHI',
+                'title'        => 'jkl mno pqr',
+                'valid'        => false,
+            ],
+        ];
+
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
     private function setupArguments($values): ArrayInput
     {
         $this->command->addArgument('test', InputArgument::OPTIONAL, '', null, [
@@ -212,6 +347,10 @@ class AlfredInteractiveCommandTest extends TestCase
             'jkl abc',
         ]);
         $this->command->addArgument('test4', InputArgument::OPTIONAL, '', null);
+        $this->command->addArgument('test4.5', InputArgument::OPTIONAL, '', null, [
+            'abc',
+            'def',
+        ]);
         $this->command->addArgument('test5', InputArgument::OPTIONAL, '', null, []);
         $this->command->addArgument('test6', InputArgument::OPTIONAL, '', null);
         $input = new ArrayInput($values, new InputDefinition([
@@ -219,6 +358,7 @@ class AlfredInteractiveCommandTest extends TestCase
             new InputArgument('test2'),
             new InputArgument('test3'),
             new InputArgument('test4'),
+            new InputArgument('test4.5'),
             new InputArgument('test6'),
         ]));
         $this->command->addArgumentsAllowedValues('test6', ['abc', 'def']);
