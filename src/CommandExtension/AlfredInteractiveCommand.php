@@ -80,7 +80,8 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
     public function getArgumentIdentifier(InputInterface $input, string $name)
     {
         if (!in_array($name, $this->acFields)) {
-            return !is_null($input->getArgument($name)) ? trim($input->getArgument($name), "'") : null;
+            return is_string($input->getArgument($name)) ? trim($input->getArgument($name),
+                "'") : $input->getArgument($name);
         }
         if (empty($this->acFieldsList[$name])) {
             $this->log(LogLevel::NOTICE, 'There are no possible values for argument ' . $name . ' configured');
@@ -137,7 +138,8 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
             $this->log(LogLevel::NOTICE, 'There are no possible values for argument ' . $name . ' configured');
             return [];
         }
-        $argument = !is_null($input->getArgument($name)) ? trim($input->getArgument($name), "'") : null;
+        $argument = is_string($input->getArgument($name)) ? trim($input->getArgument($name),
+            "'") : $input->getArgument($name);
         if (empty($argument)) {
             return $this->acFieldsList[$name];
         }
@@ -252,8 +254,8 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
                     $arguments[$argument] = array_keys($this->getArgumentMatches($input, $argument));
                 }
             } else {
-                $selectedArgument = !is_null($input->getArgument($argument)) ? trim($input->getArgument($argument),
-                    "'") : null;
+                $selectedArgument = is_string($input->getArgument($argument)) ? trim($input->getArgument($argument),
+                    "'") : $input->getArgument($argument);
                 if ($selectedArgument) {
                     $setParameters[] = $argument;
                     $arguments[$argument] = $selectedArgument;
