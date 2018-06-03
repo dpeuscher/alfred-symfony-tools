@@ -263,7 +263,7 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
         $callable = [$this, 'genericParameterHandler'];
         $genericResults = $callable($arguments);
         $return = $genericResults;
-        if (isset($this->argumentFunctions[$key])) {
+        if ($key !== false && isset($this->argumentFunctions[$key])) {
             $callable = $this->argumentFunctions[$key];
             $arguments['genericResults'] = $genericResults;
             $return = $callable($arguments);
