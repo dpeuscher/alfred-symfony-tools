@@ -2,6 +2,9 @@
 
 namespace Dpeuscher\AlfredSymfonyTools\CommandExtension;
 
+use Dpeuscher\AlfredSymfonyTools\Alfred\WorkflowHelper;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -14,6 +17,16 @@ class AlfredInteractiveContainerAwareCommand extends AlfredInteractiveCommand
      * @var ContainerInterface|null
      */
     private $container;
+
+    protected function initialize(InputInterface $input, OutputInterface $output)
+    {
+        if ($this->getContainer()->has(WorkflowHelper::class)) {
+            $this->workflowHelper = $this->getContainer()->get(WorkflowHelper::class);
+        }
+        if (!isset($this->workflowHelper)) {
+            $this->workflowHelper = new WorkflowHelper();
+        }
+    }
 
     /**
      * @return ContainerInterface

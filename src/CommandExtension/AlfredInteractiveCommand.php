@@ -237,6 +237,9 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        if (!isset($this->workflowHelper)) {
+            $this->workflowHelper = new WorkflowHelper();
+        }
         $setParameters = [];
         $arguments = [];
         foreach ($this->arguments as $argument) {

@@ -266,6 +266,56 @@ class AlfredInteractiveCommandTest extends TestCase
         }
     }
 
+    public function testAddInputHandlerWithoutWorkflowHelper()
+    {
+        $this->command = new AlfredInteractiveCommand();
+
+        $input = $this->setupArguments(['test' => 'abc', 'test2' => 'ABC']);
+
+        $output = new BufferedOutput();
+
+        $this->command->addInputHandler(['test', 'test2']);
+
+        $this->command->setLogger(new NullLogger());
+        $this->runProtectedExecute->call($this->command, $input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+
+        $expected = [
+            [
+                'autocomplete' => 'abc ABC abcdef1',
+                'title'        => 'abc def1',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'abc ABC abcghi',
+                'title'        => 'abc ghi',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'abc ABC abcdefghi',
+                'title'        => 'abc def ghi',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'abc ABC jklmno',
+                'title'        => 'jkl mno pqr',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'abc ABC jklabc',
+                'title'        => 'jkl abc',
+                'valid'        => false,
+            ],
+        ];
+
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
     public function testDefaultInputHandler()
     {
         $input = $this->setupArguments(['test' => 'abc', 'test2' => 'ABC']);
