@@ -2,7 +2,6 @@
 
 namespace Dpeuscher\AlfredSymfonyTools\Tests\Alfred;
 
-use Alfred\Workflows\Workflow;
 use Dpeuscher\AlfredSymfonyTools\Alfred\WorkflowHelper;
 use Dpeuscher\AlfredSymfonyTools\Alfred\WorkflowResult;
 use PHPUnit\Framework\TestCase;
@@ -20,16 +19,19 @@ class WorkflowHelperTest extends TestCase
      */
     protected $sut;
 
+    /**
+     * @var string
+     */
     protected $prevPath;
 
     public function setUp()
     {
         if (realpath(__DIR__ . '/../../') != realpath(getcwd())) {
-            $prevPath = getcwd();
+            $this->prevPath = getcwd();
             chdir(__DIR__ . '/../../');
         }
 
-        $this->sut = new WorkflowHelper('tests/tmp/', new Workflow());
+        $this->sut = new WorkflowHelper('tests/tmp/');
     }
 
     public function tearDown()

@@ -26,10 +26,13 @@ class WorkflowHelper
      * @param string $cacheDir
      * @param Workflow $workflow
      */
-    public function __construct(string $cacheDir, Workflow $workflow)
+    public function __construct(string $cacheDir = '/tmp/', Workflow $workflow = null)
     {
         $this->cacheDir = $cacheDir;
         $this->workflow = $workflow;
+        if (is_null($this->workflow)) {
+            $this->workflow = new Workflow();
+        }
     }
 
     /**
@@ -80,6 +83,7 @@ class WorkflowHelper
         if ($forceCopyIcon || parse_url($result->getIcon(), PHP_URL_HOST)) {
             $result->setIcon($this->getImage($result->getIcon()));
         }
+        /** @noinspection PhpUndefinedMethodInspection */
         $this->workflow->result()->uid($result->getUid())
             ->title($result->getTitle())
             ->subtitle($result->getSubtitle())
