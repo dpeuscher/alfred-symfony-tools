@@ -102,4 +102,42 @@ class WorkflowHelper
         return $this->workflow->output();
     }
 
+    /**
+     * Add a variables to the workflow
+     *
+     * @param string $key
+     * @param string $value
+     * @return $this
+     */
+    public function variable($key, $value)
+    {
+        $this->workflow->variable($key, $value);
+        return $this;
+    }
+
+    /**
+     * Sort the current results
+     *
+     * @param string $direction
+     * @param string $property
+     * @return $this
+     */
+    public function sortResults($direction = 'asc', $property = 'title')
+    {
+        $this->workflow->sortResults($direction, $property);
+        return $this;
+    }
+
+    /**
+     * Filter current results (destructive)
+     *
+     * @param string $query
+     * @param string $property
+     * @return $this
+     */
+    public function filterResults($query, $property = 'title')
+    {
+        $this->workflow->filterResults($query, $property);
+        return $this;
+    }
 }
