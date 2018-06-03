@@ -424,7 +424,7 @@ class AlfredInteractiveCommandTest extends TestCase
         $output = new BufferedOutput();
 
         $this->command->addInputHandler(['test', 'test2'], function ($arguments) {
-            $this->assertEquals($arguments['test2'], 'ABC');
+            $this->assertEquals($arguments['test2'], 'abc def');
         });
 
         $this->command->setLogger(new NullLogger());

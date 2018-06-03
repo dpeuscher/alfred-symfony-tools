@@ -210,21 +210,25 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
         $dynamicArguments = null;
         $command = [];
         foreach ($arguments as $argument => $value) {
+            if (substr($argument, -4, 4) == '.key') {
+                continue;
+            }
             if (is_array($value)) {
                 if (in_array($argument, $this->acFields)) {
                     $dynamicArguments = $argument;
                 }
                 break;
             }
-            $command[] = $value;
+            $command[] = isset($arguments[$argument . '.key']) ? $arguments[$argument . '.key'] : $value;
         }
         $results = [];
         if (isset($argument) && isset($dynamicArguments)) {
-            foreach ($arguments[$dynamicArguments] as $dynamicArgument) {
+            foreach ($arguments[$dynamicArguments] as $key => $dynamicArgument) {
                 $result = new WorkflowResult();
                 $result->setValid(false);
-                $result->setAutocomplete(trim(implode(' ', $command) . ' ' . $dynamicArgument));
-                $result->setTitle($this->acFieldsList[$argument][$dynamicArgument]);
+                $result->setAutocomplete(trim(implode(' ',
+                        $command) . ' ' . $key));
+                $result->setTitle($dynamicArgument);
                 $results[] = $result;
             }
         }
@@ -249,9 +253,10 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
                 $selectedArgument = $this->getArgumentIdentifier($input, $argument);
                 if ($selectedArgument) {
                     $setParameters[] = $argument;
-                    $arguments[$argument] = $selectedArgument;
+                    $arguments[$argument . '.key'] = $selectedArgument;
+                    $arguments[$argument] = current($this->getArgumentMatches($input, $argument));
                 } else {
-                    $arguments[$argument] = array_keys($this->getArgumentMatches($input, $argument));
+                    $arguments[$argument] = $this->getArgumentMatches($input, $argument);
                 }
             } else {
                 $selectedArgument = is_string($input->getArgument($argument)) ? trim($input->getArgument($argument),
