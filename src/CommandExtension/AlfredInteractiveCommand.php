@@ -274,7 +274,8 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
                 }
             } else {
                 $selectedArgument = is_string($input->getArgument($argument)) ? trim($input->getArgument($argument),
-                    "'") : $input->getArgument($argument);
+                    "'") : (is_array($input->getArgument($argument)) ? implode(' ',
+                    $input->getArgument($argument)) : $input->getArgument($argument));
                 if ($selectedArgument) {
                     $setParameters[] = $argument;
                     $arguments[$argument] = $selectedArgument;

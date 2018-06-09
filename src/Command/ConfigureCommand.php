@@ -144,7 +144,7 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
                                 $this->envEditor->overview()['values'][$arguments['optionName']] ?? base64_encode(json_encode([]))
                             ), true);
                             if (isset($arguments['value'])) {
-                                $vars[$arguments['key']] = implode(' ', $arguments['value']);
+                                $vars[$arguments['key']] = $arguments['value'];
                             } else {
                                 $vars[$arguments['key']] = '';
                             }
@@ -186,7 +186,7 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
                         if (isset($arguments['key'])) {
                             $value .= $arguments['key'];
                             if (isset($arguments['value'])) {
-                                $value .= ' ' . implode(' ', $arguments['value']);
+                                $value .= ' ' . $arguments['value'];
                             }
                         }
                         if (isset($this->envEditor->overview()['values'][$arguments['optionName']])) {
@@ -235,10 +235,8 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
                 /** @var WorkflowResult $result */
                 foreach ($arguments['genericResults'] as $result) {
                     $command = json_decode($result->getArg());
-                    $result->setTitle($command['key'] . ' => ' . (isset($arguments['value']) ? implode(' ',
-                            $arguments['value']) : '') . '<null>');
-                    $result->setSubtitle('Set ' . $command['key'] . ' from "' . $vars[$command['key']] . '" to "' . (isset($arguments['value']) ? implode(' ',
-                            $arguments['value']) : '') . '"');
+                    $result->setTitle($command['key'] . ' => ' . (isset($arguments['value']) ? $arguments['value'] : '') . '<null>');
+                    $result->setSubtitle('Set ' . $command['key'] . ' from "' . $vars[$command['key']] . '" to "' . (isset($arguments['value']) ? ['value'] : '') . '"');
                     $result->setArg('-x ' . implode(' ', $command));
                     $result->setValid(true);
                 }
@@ -276,10 +274,8 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
         switch ($arguments['operation']) {
             case 'set':
                 $result = new WorkflowResult();
-                $result->setTitle(trim("Set " . $arguments['optionName'] . ' to ' . ($arguments['key'] ?? '') . ' ' . (isset($arguments['value']) ? implode(' ',
-                        $arguments['value']) : '')));
-                $result->setSubtitle("Set " . $arguments['optionName'] . ' from "' . ($vars[$arguments['optionName']] ?? '<null>') . '" to "' . trim(($arguments['key'] ?? '') . ' ' . (isset($arguments['value']) ? implode(' ',
-                            $arguments['value']) : '')) . '"');
+                $result->setTitle(trim("Set " . $arguments['optionName'] . ' to ' . ($arguments['key'] ?? '') . ' ' . (isset($arguments['value']) ? $arguments['value'] : '')));
+                $result->setSubtitle("Set " . $arguments['optionName'] . ' from "' . ($vars[$arguments['optionName']] ?? '<null>') . '" to "' . trim(($arguments['key'] ?? '') . ' ' . (isset($arguments['value']) ? $arguments['value'] : '')) . '"');
                 $result->setValid(true);
                 $result->setArg('-x ' . implode(' ', $this->buildCommandFromArguments($arguments)[1]));
                 $result->setAutocomplete(implode(' ', $this->buildCommandFromArguments($arguments)[1]));

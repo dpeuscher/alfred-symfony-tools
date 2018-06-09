@@ -143,7 +143,7 @@ class ConfigureCommandTest extends TestCase
         $this->assertSame('configValue2', $input->getArgument('optionName'));
         $this->assertSame('set', $input->getArgument('operation'));
         $this->assertSame($configValueKey, $input->getArgument('key'));
-        $this->assertSame($configValueValue, $input->getArgument('value'));
+        $this->assertSame([$configValueValue], $input->getArgument('value'));
     }
 
     public function testDefinitionCanUnsetFullArray()
