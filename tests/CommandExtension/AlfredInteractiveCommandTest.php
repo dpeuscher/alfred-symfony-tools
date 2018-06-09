@@ -120,6 +120,10 @@ class AlfredInteractiveCommandTest extends TestCase
                 'abc' => 'abc',
                 'def' => 'def',
             ],
+            'test7'   => [
+                'ABC' => 'abc def',
+                'DEF' => 'ghi',
+            ],
         ];
 
         $this->assertEquals($expected, $this->getPrivateFields->call($this->command, 'acFieldsList'));
@@ -158,6 +162,10 @@ class AlfredInteractiveCommandTest extends TestCase
             'test6'   => [
                 'abc' => 'abc',
                 'def' => 'def',
+            ],
+            'test7'   => [
+                'ABC' => 'abc def',
+                'DEF' => 'ghi',
             ],
         ];
 
@@ -540,6 +548,35 @@ class AlfredInteractiveCommandTest extends TestCase
         }
     }
 
+    public function testAllowNew()
+    {
+        $input = $this->setupArgumentsAllowNew(['test' => 'abc', 'test2' => 'ABC', 'test3' => 'ABCD']);
+
+        $output = new BufferedOutput();
+
+        $this->command->addInputHandler(['test', 'test2']);
+
+        $this->command->setLogger(new NullLogger());
+        $this->runProtectedExecute->call($this->command, $input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+
+        $expected = [
+            [
+                'autocomplete' => 'abc ABC ABCD',
+                'title'        => 'ABCD',
+                'valid'        => false,
+            ],
+        ];
+
+        $this->assertNotEmpty($json['items']);
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
     private function setupArguments($values): ArrayInput
     {
         $this->command->addArgument('test', InputArgument::OPTIONAL, '', null, [
@@ -566,6 +603,10 @@ class AlfredInteractiveCommandTest extends TestCase
         ]);
         $this->command->addArgument('test5', InputArgument::OPTIONAL, '', null, []);
         $this->command->addArgument('test6', InputArgument::OPTIONAL, '', null);
+        $this->command->addArgument('test7', InputArgument::OPTIONAL, '', null, [
+            'ABC' => 'abc def',
+            'DEF' => 'ghi',
+        ]);
         $input = new ArrayInput($values, new InputDefinition([
             new InputArgument('test'),
             new InputArgument('test2'),
@@ -573,8 +614,33 @@ class AlfredInteractiveCommandTest extends TestCase
             new InputArgument('test4'),
             new InputArgument('test4.5'),
             new InputArgument('test6'),
+            new InputArgument('test7'),
         ]));
         $this->command->addArgumentsAllowedValues('test6', ['abc', 'def']);
+        return $input;
+    }
+
+    private function setupArgumentsAllowNew($values): ArrayInput
+    {
+        $this->command->addArgument('test', InputArgument::OPTIONAL, '', null, [
+            'abc def',
+            'ghi',
+            'jkl mno pqr',
+        ]);
+        $this->command->addArgument('test2', InputArgument::OPTIONAL, '', null, [
+            'ABC' => 'abc def',
+            'DEF' => 'ghi',
+            'GHI' => 'jkl mno pqr',
+        ]);
+        $this->command->addArgument('test3', InputArgument::OPTIONAL, '', null, [
+            'ABC' => 'abc def',
+            'DEF' => 'ghi',
+        ], true);
+        $input = new ArrayInput($values, new InputDefinition([
+            new InputArgument('test'),
+            new InputArgument('test2'),
+            new InputArgument('test3'),
+        ]));
         return $input;
     }
 }

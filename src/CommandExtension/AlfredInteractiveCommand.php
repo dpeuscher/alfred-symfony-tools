@@ -50,6 +50,11 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
     private $acFieldsList = [];
 
     /**
+     * @var string[][]
+     */
+    private $acFieldAllowNew = [];
+
+    /**
      * @var bool
      */
     private $updatedBestMatches = false;
@@ -62,19 +67,26 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
         $this->workflowHelper = $workflowHelper;
     }
 
-    public function addArgument($name, $mode = null, $description = '', $default = null, array $allowedValues = null)
-    {
+    public function addArgument(
+        $name,
+        $mode = null,
+        $description = '',
+        $default = null,
+        array $allowedValues = null,
+        bool $allowNew = false
+    ) {
         $this->arguments[] = $name;
         if (isset($allowedValues)) {
-            $this->addArgumentsAllowedValues($name, $allowedValues);
+            $this->addArgumentsAllowedValues($name, $allowedValues, $allowNew);
         }
         return parent::addArgument($name, $mode, $description, $default);
     }
 
-    public function addArgumentsAllowedValues($name, array $allowedValues)
+    public function addArgumentsAllowedValues($name, array $allowedValues, $allowNew = false)
     {
         $this->acFields[] = $name;
         $this->acFieldsList[$name] = $allowedValues;
+        $this->acFieldAllowNew[$name] = $allowNew;
     }
 
     public function getArgumentIdentifier(InputInterface $input, string $name)
@@ -146,11 +158,14 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
         $matches = [];
         foreach ($this->acFieldsList[$name] as $key => $value) {
             if ($key == $argument) {
+                return [$key => $value];
+            }
+            if (!$this->acFieldAllowNew[$name] && strstr(str_replace(' ', '', $value), $argument) !== false) {
                 $matches[$key] = $value;
             }
-            if (strstr(str_replace(' ', '', $value), $argument) !== false) {
-                $matches[$key] = $value;
-            }
+        }
+        if ($this->acFieldAllowNew[$name]) {
+            $matches[$argument] = $argument;
         }
         return $matches;
     }
@@ -207,30 +222,29 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
 
     protected function genericParameterHandler($arguments)
     {
-        $dynamicArguments = null;
-        $command = [];
-        foreach ($arguments as $argument => $value) {
-            if (substr($argument, -4, 4) == '.key') {
-                continue;
-            }
-            if (is_array($value)) {
-                if (in_array($argument, $this->acFields)) {
-                    $dynamicArguments = $argument;
-                }
-                break;
-            }
-            $command[] = isset($arguments[$argument . '.key']) ? $arguments[$argument . '.key'] : $value;
-        }
+        list($dynamicArguments, $command) = $this->buildCommandFromArguments($arguments);
         $results = [];
-        if (isset($argument) && isset($dynamicArguments)) {
+        if (isset($dynamicArguments)) {
             foreach ($arguments[$dynamicArguments] as $key => $dynamicArgument) {
                 $result = new WorkflowResult();
                 $result->setValid(false);
-                $result->setAutocomplete(trim(implode(' ',
-                        $command) . ' ' . $key));
+                $result->setAutocomplete(trim(implode(' ', $command) . ' ' . $key));
+                $result->setArg(json_encode($command + [$key]));
                 $result->setTitle($dynamicArgument);
                 $results[] = $result;
             }
+        } else {
+            $result = new WorkflowResult();
+            $result->setValid(false);
+            $result->setAutocomplete(trim(implode(' ', $command)));
+            $result->setArg(json_encode($command));
+            /** @noinspection PhpStatementHasEmptyBodyInspection */
+            foreach ($command as $key => $value) {
+            }
+            if (isset($value)) {
+                $result->setTitle($value);
+            }
+            $results[] = $result;
         }
         return $results;
     }
@@ -287,5 +301,28 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
             throw new \Exception("There should only be Workflows returned");
         }
         $output->write($this->workflowHelper);
+    }
+
+    /**
+     * @param $arguments
+     * @return array
+     */
+    protected function buildCommandFromArguments($arguments): array
+    {
+        $dynamicArguments = null;
+        $command = [];
+        foreach ($arguments as $argument => $value) {
+            if (substr($argument, -4, 4) == '.key') {
+                continue;
+            }
+            if (is_array($value)) {
+                if (in_array($argument, $this->acFields)) {
+                    $dynamicArguments = $argument;
+                }
+                break;
+            }
+            $command[$argument] = isset($arguments[$argument . '.key']) ? $arguments[$argument . '.key'] : $value;
+        }
+        return [$dynamicArguments, $command];
     }
 }

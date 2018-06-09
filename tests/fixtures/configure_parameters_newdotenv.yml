@@ -1,0 +1,3 @@
+configDotEnvFileConfiguration: tests/fixtures/new/dotenveditor.php
+configValues:
+  - configValue1

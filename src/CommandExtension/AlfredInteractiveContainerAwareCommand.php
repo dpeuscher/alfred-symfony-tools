@@ -3,6 +3,7 @@
 namespace Dpeuscher\AlfredSymfonyTools\CommandExtension;
 
 use Dpeuscher\AlfredSymfonyTools\Alfred\WorkflowHelper;
+use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -38,7 +39,10 @@ class AlfredInteractiveContainerAwareCommand extends AlfredInteractiveCommand
             //@codeCoverageIgnoreStart
             $application = $this->getApplication();
             if (null === $application) {
-                throw new \LogicException('The container cannot be retrieved as the application instance is not yet set.');
+                $application = $GLOBALS['application'] ?? null;
+                if (null === $application && !$application instanceof Application) {
+                    throw new \LogicException('The container cannot be retrieved as the application instance is not yet set.');
+                }
             }
 
             /** @noinspection PhpUndefinedMethodInspection This is copy/paste from symfony code */

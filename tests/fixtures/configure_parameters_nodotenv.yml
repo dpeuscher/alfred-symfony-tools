@@ -1,0 +1,3 @@
+kernel.project_dir: tests/fixtures
+configValues:
+  - configValue1
