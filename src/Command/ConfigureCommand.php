@@ -106,7 +106,7 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
                 case 'array':
                     $this->addArgumentsAllowedValues('operation',
                         ['set' => 'set', 'remove' => 'remove', 'unset' => 'unset']);
-                    $selectedOperation = $this->getSelectedArgument($input, 'optionName');
+                    $selectedOperation = $this->getSelectedArgument($input, 'operation');
                     if ($selectedOperation) {
                         $vars = $this->envEditor->overview()['values'][$selectedOption] ?? json_encode([]);
                         if (substr($vars, 0, 1) == '"' && substr($vars, -1, 1) == '"') {
