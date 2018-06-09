@@ -9,6 +9,7 @@ use makbari\DotEnvEditor\services\Config;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Exception\ParameterNotFoundException;
 
 /**
@@ -65,7 +66,7 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
 
         try {
             $this->dotEnvConfigurationFile = $this->getContainer()->getParameter(self::CONFIG_DOTENV_FILE);
-        } catch (ParameterNotFoundException $exception) {
+        } catch (ParameterNotFoundException|InvalidArgumentException $exception) {
             $this->dotEnvConfigurationFile = $this->getContainer()->getParameter('kernel.project_dir') . '/config/dotenveditor.php';
         }
 
@@ -273,8 +274,8 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
         switch ($arguments['operation']) {
             case 'set':
                 $result = new WorkflowResult();
-                $result->setTitle(trim("Set " . $arguments['optionName'] . ' to ' . ($arguments['value'] ?? '') . ' ' . $arguments['content']));
-                $result->setSubtitle("Set " . $arguments['optionName'] . ' from "' . ($vars[$arguments['optionName']] ?? '<null>') . '" to "' . trim(($arguments['value'] ?? '') . ' ' . $arguments['content']) . '"');
+                $result->setTitle(trim("Set " . $arguments['optionName'] . ' to ' . ($arguments['key'] ?? '') . ' ' . ($arguments['value'] ?? '')));
+                $result->setSubtitle("Set " . $arguments['optionName'] . ' from "' . ($vars[$arguments['optionName']] ?? '<null>') . '" to "' . trim(($arguments['key'] ?? '') . ' ' . ($arguments['value'] ?? '')) . '"');
                 $result->setValid(true);
                 $result->setArg('-x ' . implode(' ', $this->buildCommandFromArguments($arguments)[1]));
                 $result->setAutocomplete(implode(' ', $this->buildCommandFromArguments($arguments)[1]));
