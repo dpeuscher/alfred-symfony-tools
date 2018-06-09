@@ -255,7 +255,7 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
                 foreach ($arguments['genericResults'] as $result) {
                     $command = json_decode($result->getArg(), true);
                     $result->setTitle($command['key'] . ' => ' . (isset($arguments['value']) ? $arguments['value'] : '') . '""');
-                    $result->setSubtitle('Set ' . $command['key'] . ' from "' . ($vars[$command['key']] ?? '<null>') . '" to "' . (isset($arguments['value']) ? ['value'] : '') . '"');
+                    $result->setSubtitle('Set ' . $command['key'] . ' from "' . ($vars[$command['key']] ?? '<null>') . '" to "' . (isset($arguments['value']) ? $arguments['value'] : '') . '"');
                     $result->setArg('-x ' . implode(' ', $command));
                     $result->setValid(true);
                 }
