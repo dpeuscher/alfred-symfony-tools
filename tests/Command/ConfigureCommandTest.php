@@ -357,7 +357,7 @@ class ConfigureCommandTest extends TestCase
         $this->callInitialize($input, $output);
         $this->callExecute($input, $output);
 
-        $this->assertEnvVar('tests/tmp/.env', base64_encode(json_encode([$configKey => $configValue])), $envVarName);
+        $this->assertEnvVar('tests/tmp/.env', json_encode([$configKey => $configValue]), $envVarName, true);
     }
 
     public function testCanAddCorrectArrayValueToExistingArrayInExistingDotEnvFile()
@@ -384,10 +384,10 @@ class ConfigureCommandTest extends TestCase
         $this->callInitialize($input, $output);
         $this->callExecute($input, $output);
 
-        $this->assertEnvVar('tests/tmp/.env', base64_encode(json_encode([
+        $this->assertEnvVar('tests/tmp/.env', json_encode([
             'configKey0' => 'test0',
             $configKey   => $configValue,
-        ])), $envVarName);
+        ]), $envVarName, true);
     }
 
     public function testCanAddCorrectEmptyStringInExistingArrayInExistingDotEnvFile()
@@ -412,10 +412,10 @@ class ConfigureCommandTest extends TestCase
         $this->callInitialize($input, $output);
         $this->callExecute($input, $output);
 
-        $this->assertEnvVar('tests/tmp/.env', base64_encode(json_encode([
+        $this->assertEnvVar('tests/tmp/.env', json_encode([
             'configKey0' => 'test0',
             $configKey   => '',
-        ])), $envVarName);
+        ]), $envVarName, true);
     }
 
     public function testCanRemoveItemInExistingArrayInExistingDotEnvFile()
@@ -440,7 +440,7 @@ class ConfigureCommandTest extends TestCase
         $this->callInitialize($input, $output);
         $this->callExecute($input, $output);
 
-        $this->assertEnvVar('tests/tmp/.env', base64_encode(json_encode([])), $envVarName);
+        $this->assertEnvVar('tests/tmp/.env', json_encode([]), $envVarName, true);
     }
 
     public function testCanUnsetArrayInExistingDotEnvFile()

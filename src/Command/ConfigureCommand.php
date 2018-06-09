@@ -137,21 +137,27 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
     {
         switch ($this->parameterTypes[$arguments['optionName']]) {
             case 'array':
+                $vars = $this->envEditor->overview()['values'][$arguments['optionName']] ?? json_encode([]);
+                if (substr($vars, 0, 1) == '"' && substr($vars, -1, 1) == '"') {
+                    $vars = str_replace(['\"', '\\\\'], ['"', '\\'], (trim($vars, '"')));
+                }
                 switch ($arguments['operation']) {
                     case 'set':
                         if ($arguments['key']) {
-                            $vars = json_decode(base64_decode(
-                                $this->envEditor->overview()['values'][$arguments['optionName']] ?? base64_encode(json_encode([]))
-                            ), true);
+                            $vars = json_decode($vars, true);
                             if (isset($arguments['value'])) {
                                 $vars[$arguments['key']] = $arguments['value'];
                             } else {
                                 $vars[$arguments['key']] = '';
                             }
                             if (isset($this->envEditor->overview()['values'][$arguments['optionName']])) {
-                                $this->envEditor->update([$arguments['optionName'] => base64_encode(json_encode($vars))]);
+                                $this->envEditor->update([
+                                    $arguments['optionName'] => addcslashes(json_encode($vars), '"\\'),
+                                ]);
                             } else {
-                                $this->envEditor->add([$arguments['optionName'] => base64_encode(json_encode($vars))]);
+                                $this->envEditor->add([
+                                    $arguments['optionName'] => addcslashes(json_encode($vars), '"\\'),
+                                ]);
                             }
                         } else {
                             return $this->handleOptionOperation($arguments);
@@ -159,16 +165,21 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
                         break;
                     case 'remove':
                         if ($arguments['key']) {
-                            $vars = json_decode(base64_decode(
-                                $this->envEditor->overview()['values'][$arguments['optionName']] ?? base64_encode(json_encode([]))
-                            ), true);
+                            $vars = json_decode(trim($vars,
+                                '"'), true);
                             if (isset($vars[$arguments['key']])) {
                                 unset($vars[$arguments['key']]);
                             }
                             if (isset($this->envEditor->overview()['values'][$arguments['optionName']])) {
-                                $this->envEditor->update([$arguments['optionName'] => base64_encode(json_encode($vars))]);
+                                $this->envEditor->update([
+                                    $arguments['optionName'] => addcslashes(json_encode($vars),
+                                        '"\\'),
+                                ]);
                             } else {
-                                $this->envEditor->add([$arguments['optionName'] => base64_encode(json_encode($vars))]);
+                                $this->envEditor->add([
+                                    $arguments['optionName'] => addcslashes(json_encode($vars),
+                                        '"\\'),
+                                ]);
                             }
                         } else {
                             return $this->handleOptionOperation($arguments);
