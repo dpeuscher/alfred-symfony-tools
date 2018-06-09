@@ -108,13 +108,16 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
                         ['set' => 'set', 'remove' => 'remove', 'unset' => 'unset']);
                     $selectedOperation = $this->getSelectedArgument($input, 'optionName');
                     if ($selectedOperation) {
-                        $optionArray = $this->envEditor->overview()[$selectedOption] ?? [];
+                        $vars = $this->envEditor->overview()['values'][$selectedOption] ?? json_encode([]);
+                        if (substr($vars, 0, 1) == '"' && substr($vars, -1, 1) == '"') {
+                            $vars = str_replace(['\"', '\\\\'], ['"', '\\'], (trim($vars, '"')));
+                        }
                         switch ($selectedOperation) {
                             case 'set':
-                                $this->addArgumentsAllowedValues('key', array_keys($optionArray), true);
+                                $this->addArgumentsAllowedValues('key', array_keys($vars), true);
                                 break;
                             case 'remove':
-                                $this->addArgumentsAllowedValues('key', array_keys($optionArray), false);
+                                $this->addArgumentsAllowedValues('key', array_keys($vars), false);
                                 break;
                             case 'unset':
                                 break;
