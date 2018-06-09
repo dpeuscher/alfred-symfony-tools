@@ -136,7 +136,7 @@ class ConfigureCommandTest extends TestCase
             'optionName' => 'configValue2',
             'operation'  => 'set',
             'key'        => $configValueKey,
-            'value'      => $configValueValue,
+            'value'      => [$configValueValue],
         ],
             $definition);
 
@@ -248,7 +248,7 @@ class ConfigureCommandTest extends TestCase
             'optionName' => 'configValue1',
             'operation'  => 'set',
             'key'        => strtok($configValue, ' '),
-            'value'      => strtok(' '),
+            'value'      => [strtok(' ')],
         ],
             $definition);
         $output = new NullOutput();
@@ -348,7 +348,7 @@ class ConfigureCommandTest extends TestCase
             'optionName' => $envVarName,
             'operation'  => 'set',
             'key'        => $configKey,
-            'value'      => $configValue,
+            'value'      => [$configValue],
         ],
             $definition);
         $output = new NullOutput();
@@ -375,7 +375,7 @@ class ConfigureCommandTest extends TestCase
             'optionName' => $envVarName,
             'operation'  => 'set',
             'key'        => $configKey,
-            'value'      => $configValue,
+            'value'      => [$configValue],
         ],
             $definition);
         $output = new NullOutput();
