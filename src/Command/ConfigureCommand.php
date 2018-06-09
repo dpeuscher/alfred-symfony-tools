@@ -245,7 +245,7 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
             case 'set':
                 /** @var WorkflowResult $result */
                 foreach ($arguments['genericResults'] as $result) {
-                    $command = json_decode($result->getArg());
+                    $command = json_decode($result->getArg(), true);
                     $result->setTitle($command['key'] . ' => ' . (isset($arguments['value']) ? $arguments['value'] : '') . '<null>');
                     $result->setSubtitle('Set ' . $command['key'] . ' from "' . $vars[$command['key']] . '" to "' . (isset($arguments['value']) ? ['value'] : '') . '"');
                     $result->setArg('-x ' . implode(' ', $command));
@@ -255,7 +255,7 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
             case 'remove':
                 /** @var WorkflowResult $result */
                 foreach ($arguments['genericResults'] as $result) {
-                    $command = json_decode($result->getArg());
+                    $command = json_decode($result->getArg(), true);
                     $result->setTitle('Remove ' . $arguments['key']);
                     $result->setSubtitle('Remove ' . $arguments['key'] . ' with "' . $vars[$arguments['key']] . '"');
                     $result->setArg('-x ' . implode(' ', $command));
