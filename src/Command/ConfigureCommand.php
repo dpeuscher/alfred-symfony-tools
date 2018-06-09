@@ -244,7 +244,11 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
      */
     protected function handleOperationsForArrayOption(array $arguments): array
     {
-        $vars = $this->envEditor->overview()['values'][$arguments['optionName']] ?? [];
+        $vars = $this->envEditor->overview()['values'][$arguments['optionName']] ?? json_encode([]);
+        if (substr($vars, 0, 1) == '"' && substr($vars, -1, 1) == '"') {
+            $vars = str_replace(['\"', '\\\\'], ['"', '\\'], (trim($vars, '"')));
+        }
+        $vars = json_decode($vars, true);
         switch ($arguments['operation']) {
             case 'set':
                 /** @var WorkflowResult $result */

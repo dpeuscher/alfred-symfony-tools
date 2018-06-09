@@ -229,7 +229,7 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
                 $result = new WorkflowResult();
                 $result->setValid(false);
                 $result->setAutocomplete(trim(implode(' ', $command) . ' ' . $key));
-                $result->setArg(json_encode($command + [$key]));
+                $result->setArg(json_encode($command + [$dynamicArguments => (string)$key]));
                 $result->setTitle($dynamicArgument);
                 $results[] = $result;
             }
