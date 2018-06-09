@@ -112,6 +112,7 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
                         if (substr($vars, 0, 1) == '"' && substr($vars, -1, 1) == '"') {
                             $vars = str_replace(['\"', '\\\\'], ['"', '\\'], (trim($vars, '"')));
                         }
+                        $vars = json_decode($vars, true);
                         switch ($selectedOperation) {
                             case 'set':
                                 $this->addArgumentsAllowedValues('key', array_keys($vars), true);
