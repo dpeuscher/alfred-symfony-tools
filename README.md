@@ -14,8 +14,9 @@
          * [Tips](#tips)
             * [Environment variables](#environment-variables)
             * [Config command](#config-command)
+            * [Example](#example)
 
-<!-- Added by: dominikpeuscher, at: Sun Jun 10 20:21:37 CEST 2018 -->
+<!-- Added by: dominikpeuscher, at: Sun Jun 10 21:45:42 CEST 2018 -->
 
 <!--te-->
 
