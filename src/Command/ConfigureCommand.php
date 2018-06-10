@@ -115,13 +115,13 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
                         $vars = json_decode($vars, true);
                         $keys = [];
                         foreach ($vars as $key => $value) {
-                            $keys[$key] = $key;
+                            $keys[(string)$key] = (string)$key;
                         }
                         switch ($selectedOperation) {
                             case 'set':
                                 $selectedKey = $input->getArgument('key');
                                 if (!is_null($selectedKey) && !isset($keys[$selectedKey])) {
-                                    $keys = [$selectedKey => $selectedKey] + $keys;
+                                    $keys = [(string)$selectedKey => (string)$selectedKey] + $keys;
                                 }
                                 $this->addArgumentsAllowedValues('key', $keys, true);
                                 break;
