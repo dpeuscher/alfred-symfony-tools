@@ -1,5 +1,24 @@
 [![Build Status](https://travis-ci.org/dpeuscher/alfred-symfony-tools.svg?branch=master)](https://travis-ci.org/dpeuscher/alfred-symfony-tools) [![codecov](https://codecov.io/gh/dpeuscher/alfred-symfony-tools/branch/master/graph/badge.svg)](https://codecov.io/gh/dpeuscher/alfred-symfony-tools)
 
+<!--ts-->
+   * [alfred-symfony-tools](#alfred-symfony-tools)
+      * [Autocomplete Lists](#autocomplete-lists)
+         * [Hard coded argument-lists](#hard-coded-argument-lists)
+         * [Dynamically loaded argument-lists](#dynamically-loaded-argument-lists)
+         * [Execution operations](#execution-operations)
+      * [ConfigureCommand](#configurecommand)
+         * [DotEnvEditor](#dotenveditor)
+      * [Alfred Workflow](#alfred-workflow)
+         * [alfred.php](#alfredphp)
+         * [Creating the workflow](#creating-the-workflow)
+         * [Tips](#tips)
+            * [Environment variables](#environment-variables)
+            * [Config command](#config-command)
+
+<!-- Added by: dominikpeuscher, at: Sun Jun 10 20:19:32 CEST 2018 -->
+
+<!--te-->
+
 # alfred-symfony-tools
 Toolkit for integrating Alfred workflows with Symfony4 Frameworks Commands
 
