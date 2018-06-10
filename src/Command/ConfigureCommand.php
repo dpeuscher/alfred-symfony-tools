@@ -80,12 +80,12 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
 
         $this->buildAllowedArguments($input);
 
+        $this->addInputHandler(['optionName'], [$this, 'handleOperationShow']);
         if ($input->getOption('execute')) {
             $this->addInputHandler(['optionName', 'operation'], [$this, 'handleExecution']);
             $this->addInputHandler(['optionName', 'operation', 'key'], [$this, 'handleExecution']);
             $this->addInputHandler(['optionName', 'operation', 'key', 'value'], [$this, 'handleExecution']);
         } else {
-            $this->addInputHandler(['optionName']);
             $this->addInputHandler(['optionName', 'operation'], [$this, 'handleOptionOperation']);
             $this->addInputHandler(['optionName', 'operation', 'key'], [$this, 'handleOptionOperation']);
             $this->addInputHandler(['optionName', 'operation', 'key', 'value'], [$this, 'handleOptionOperation']);
@@ -113,12 +113,20 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
                             $vars = str_replace(['\"', '\\\\'], ['"', '\\'], (trim($vars, '"')));
                         }
                         $vars = json_decode($vars, true);
+                        $keys = [];
+                        foreach ($vars as $key => $value) {
+                            $keys[$key] = $key;
+                        }
                         switch ($selectedOperation) {
                             case 'set':
-                                $this->addArgumentsAllowedValues('key', array_keys($vars), true);
+                                $selectedKey = $input->getArgument('key');
+                                if (!is_null($selectedKey) && !isset($keys[$selectedKey])) {
+                                    $keys = [$selectedKey => $selectedKey] + $keys;
+                                }
+                                $this->addArgumentsAllowedValues('key', $keys, true);
                                 break;
                             case 'remove':
-                                $this->addArgumentsAllowedValues('key', array_keys($vars), false);
+                                $this->addArgumentsAllowedValues('key', $keys, false);
                                 break;
                             case 'unset':
                                 break;
@@ -137,6 +145,35 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
      * @return array
      * @throws \Exception
      */
+    protected function handleOperationShow($arguments): array
+    {
+        /** @var WorkflowResult $result */
+        foreach ($arguments['genericResults'] as $result) {
+            $command = json_decode($result->getArg(), true);
+            if ($this->parameterTypes[$command['optionName']] == 'string') {
+                $result->setTitle(ucwords($command['operation']) . ' ' . $command['optionName']);
+            } elseif ($this->parameterTypes[$command['optionName']] == 'array') {
+                switch ($command['operation']) {
+                    case 'set':
+                        $result->setTitle('Set key for ' . $command['optionName'] . '[]');
+                        break;
+                    case 'remove':
+                        $result->setTitle('Remove key from ' . $command['optionName'] . '[]');
+                        break;
+                    case 'unset':
+                        $result->setTitle('Unset ' . $command['optionName'] . '[]');
+                        break;
+                }
+            }
+        }
+        return $arguments['genericResults'];
+    }
+
+    /**
+     * @param array $arguments
+     * @return array
+     * @throws \Exception
+     */
     protected function handleExecution($arguments): array
     {
         switch ($this->parameterTypes[$arguments['optionName']]) {
@@ -147,7 +184,7 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
                 }
                 switch ($arguments['operation']) {
                     case 'set':
-                        if ($arguments['key']) {
+                        if (is_string($arguments['key'])) {
                             $vars = json_decode($vars, true);
                             if (isset($arguments['value'])) {
                                 $vars[$arguments['key']] = $arguments['value'];
@@ -168,7 +205,7 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
                         }
                         break;
                     case 'remove':
-                        if ($arguments['key']) {
+                        if (is_string($arguments['key'])) {
                             $vars = json_decode(trim($vars,
                                 '"'), true);
                             if (isset($vars[$arguments['key']])) {
@@ -176,13 +213,7 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
                             }
                             if (isset($this->envEditor->overview()['values'][$arguments['optionName']])) {
                                 $this->envEditor->update([
-                                    $arguments['optionName'] => addcslashes(json_encode($vars),
-                                        '"\\'),
-                                ]);
-                            } else {
-                                $this->envEditor->add([
-                                    $arguments['optionName'] => addcslashes(json_encode($vars),
-                                        '"\\'),
+                                    $arguments['optionName'] => addcslashes(json_encode($vars), '"\\'),
                                 ]);
                             }
                         } else {
@@ -233,9 +264,8 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
             case 'string':
                 $return = $this->handleOperationsForScalarOption($arguments);
                 return $return;
-            default:
-                throw new \Exception("Could not find option " . $arguments['optionName']);
         }
+        return []; //@codeCoverageIgnore
     }
 
     /**
@@ -254,26 +284,26 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
                 /** @var WorkflowResult $result */
                 foreach ($arguments['genericResults'] as $result) {
                     $command = json_decode($result->getArg(), true);
-                    $result->setTitle($command['key'] . ' => ' . (isset($arguments['value']) ? $arguments['value'] : '') . '""');
-                    $result->setSubtitle('Set ' . $command['key'] . ' from "' . ($vars[$command['key']] ?? '<null>') . '" to "' . (isset($arguments['value']) ? $arguments['value'] : '') . '"');
+                    $result->setTitle($arguments['optionName'] . '[' . $command['key'] . '] = "' . (isset($arguments['value']) ? $arguments['value'] : '') . '"');
+                    $result->setSubtitle('Set ' . $command['key'] . ' for Parameter ' . $arguments['optionName'] . ' from "' . ($vars[$command['key']] ?? '<null>') . '" to "' . (isset($arguments['value']) ? $arguments['value'] : '') . '"');
                     $result->setArg('-x ' . implode(' ', $command));
-                    $result->setValid(true);
+                    $result->setValid(is_string($arguments['key']));
                 }
                 break;
             case 'remove':
                 /** @var WorkflowResult $result */
                 foreach ($arguments['genericResults'] as $result) {
                     $command = json_decode($result->getArg(), true);
-                    $result->setTitle('Remove ' . $arguments['key']);
-                    $result->setSubtitle('Remove ' . $arguments['key'] . ' with "' . $vars[$arguments['key']] . '"');
+                    $result->setTitle('Remove ' . $arguments['optionName'] . '[' . $command['key'] . ']');
+                    $result->setSubtitle('Remove ' . $command['key'] . ' for Parameter ' . $arguments['optionName'] . ' with "' . $vars[$command['key']] . '"');
                     $result->setArg('-x ' . implode(' ', $command));
-                    $result->setValid(true);
+                    $result->setValid(is_string($arguments['key']));
                 }
                 break;
             case 'unset':
                 $result = new WorkflowResult();
-                $result->setTitle("Remove " . $arguments['optionName']);
-                $result->setSubtitle("Remove " . $arguments['optionName'] . ' with "' . json_encode($vars) . '"');
+                $result->setTitle("Unset " . $arguments['optionName'] . '[]');
+                $result->setSubtitle("Unset " . $arguments['optionName'] . ' with "' . json_encode($vars) . '"');
                 $result->setValid(true);
                 $result->setArg(implode(' ', $this->buildCommandFromArguments($arguments)[1]));
                 $result->setAutocomplete(implode(' ', $this->buildCommandFromArguments($arguments)[1]));
@@ -293,7 +323,7 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
         switch ($arguments['operation']) {
             case 'set':
                 $result = new WorkflowResult();
-                $result->setTitle(trim("Set " . $arguments['optionName'] . ' to ' . ($arguments['key'] ?? '') . ' ' . (isset($arguments['value']) ? $arguments['value'] : '')));
+                $result->setTitle($arguments['optionName'] . ' = "' . trim(($arguments['key'] ?? '') . ' ' . (isset($arguments['value']) ? $arguments['value'] : '')) . '"');
                 $result->setSubtitle("Set " . $arguments['optionName'] . ' from "' . ($vars[$arguments['optionName']] ?? '<null>') . '" to "' . trim(($arguments['key'] ?? '') . ' ' . (isset($arguments['value']) ? $arguments['value'] : '')) . '"');
                 $result->setValid(true);
                 $result->setArg('-x ' . implode(' ', $this->buildCommandFromArguments($arguments)[1]));
@@ -303,7 +333,7 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
             case 'unset':
                 $result = new WorkflowResult();
                 $result->setTitle("Remove " . $arguments['optionName']);
-                $result->setSubtitle("Remove " . $arguments['optionName'] . ' with "' . json_encode($vars) . '"');
+                $result->setSubtitle("Remove " . $arguments['optionName'] . ' with "' . $vars[$arguments['optionName']] . '"');
                 $result->setValid(true);
                 $result->setArg('-x ' . implode(' ', $this->buildCommandFromArguments($arguments)[1]));
                 $result->setAutocomplete(implode(' ', $this->buildCommandFromArguments($arguments)[1]));

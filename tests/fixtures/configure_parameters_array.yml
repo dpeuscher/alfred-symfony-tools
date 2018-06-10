@@ -1,3 +1,5 @@
 configDotEnvFileConfiguration: tests/fixtures/dotenveditor.php
 configValues:
+  - configValue0
+  - configValue1
   - configValue2[]

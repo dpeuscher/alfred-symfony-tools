@@ -95,7 +95,7 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
             return is_string($input->getArgument($name)) ? trim($input->getArgument($name),
                 "'") : $input->getArgument($name);
         }
-        if (empty($this->acFieldsList[$name])) {
+        if (empty($this->acFieldsList[$name]) && !$this->acFieldAllowNew[$name]) {
             $this->log(LogLevel::NOTICE, 'There are no possible values for argument ' . $name . ' configured');
             return null;
         }
@@ -146,7 +146,7 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
         if (!in_array($name, $this->acFields)) {
             return [];
         }
-        if (empty($this->acFieldsList[$name])) {
+        if (empty($this->acFieldsList[$name]) && !$this->acFieldAllowNew[$name]) {
             $this->log(LogLevel::NOTICE, 'There are no possible values for argument ' . $name . ' configured');
             return [];
         }
@@ -265,7 +265,7 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
         foreach ($this->arguments as $argument) {
             if (in_array($argument, $this->acFields)) {
                 $selectedArgument = $this->getArgumentIdentifier($input, $argument);
-                if ($selectedArgument) {
+                if (!is_null($selectedArgument)) {
                     $setParameters[] = $argument;
                     $arguments[$argument . '.key'] = $selectedArgument;
                     $arguments[$argument] = current($this->getArgumentMatches($input, $argument));

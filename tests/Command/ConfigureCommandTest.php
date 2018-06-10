@@ -8,6 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Container;
@@ -466,6 +467,502 @@ class ConfigureCommandTest extends TestCase
         $this->assertEnvVarNotSet('tests/tmp/.env', $envVarName);
     }
 
+    public function testCanDisplayConfigVars()
+    {
+        copy('tests/fixtures/configure_parameters.env', 'tests/tmp/.env');
+        $this->loadContainer('configure_parameters_array.yml');
+        $definition = $this->sut->getDefinition();
+
+        $input = new ArrayInput([], $definition);
+        $output = new BufferedOutput();
+
+        $this->callConfigure();
+        $this->callInitialize($input, $output);
+        $this->callExecute($input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+        $expected = [
+            [
+                'autocomplete' => 'configValue0',
+                'title'        => 'configValue0',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'configValue1',
+                'title'        => 'configValue1',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'configValue2',
+                'title'        => 'configValue2',
+                'valid'        => false,
+            ],
+        ];
+
+        $this->assertNotEmpty($json['items']);
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
+    public function testCanDisplayScalarOperationsForGivenConfigVar()
+    {
+        copy('tests/fixtures/configure_parameters.env', 'tests/tmp/.env');
+        $this->loadContainer('configure_parameters_array.yml');
+        $definition = $this->sut->getDefinition();
+
+        $input = new ArrayInput(['optionName' => 'configValue0'], $definition);
+        $output = new BufferedOutput();
+
+        $this->callConfigure();
+        $this->callInitialize($input, $output);
+        $this->callExecute($input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+        $expected = [
+            [
+                'autocomplete' => 'configValue0 set',
+                'title'        => 'Set configValue0',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'configValue0 unset',
+                'title'        => 'Unset configValue0',
+                'valid'        => false,
+            ],
+        ];
+
+        $this->assertNotEmpty($json['items']);
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
+    public function testCanDisplayCurrentValueOfAScalarConfigForSetEmptyStringOperation()
+    {
+        copy('tests/fixtures/configure_parameters.env', 'tests/tmp/.env');
+        $this->loadContainer('configure_parameters_array.yml');
+        $definition = $this->sut->getDefinition();
+
+        $input = new ArrayInput(['optionName' => 'configValue0', 'operation' => 'set'], $definition);
+        $output = new BufferedOutput();
+
+        $this->callConfigure();
+        $this->callInitialize($input, $output);
+        $this->callExecute($input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+        $expected = [
+            [
+                'autocomplete' => 'configValue0 set',
+                'title'        => 'configValue0 = ""',
+                'subtitle'     => 'Set configValue0 from "test0" to ""',
+                'valid'        => true,
+            ],
+        ];
+
+        $this->assertNotEmpty($json['items']);
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
+    public function testCanDisplayCurrentValueOfAScalarConfigForSetValueOperation()
+    {
+        copy('tests/fixtures/configure_parameters.env', 'tests/tmp/.env');
+        $this->loadContainer('configure_parameters_array.yml');
+        $definition = $this->sut->getDefinition();
+
+        $input = new ArrayInput(['optionName' => 'configValue0', 'operation' => 'set', 'key' => 'test1'], $definition);
+        $output = new BufferedOutput();
+
+        $this->callConfigure();
+        $this->callInitialize($input, $output);
+        $this->callExecute($input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+        $expected = [
+            [
+                'autocomplete' => 'configValue0 set test1',
+                'title'        => 'configValue0 = "test1"',
+                'subtitle'     => 'Set configValue0 from "test0" to "test1"',
+                'valid'        => true,
+            ],
+        ];
+
+        $this->assertNotEmpty($json['items']);
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
+    public function testCanDisplayCurrentValueOfAScalarConfigForUnsetOperation()
+    {
+        copy('tests/fixtures/configure_parameters.env', 'tests/tmp/.env');
+        $this->loadContainer('configure_parameters_array.yml');
+        $definition = $this->sut->getDefinition();
+
+        $input = new ArrayInput(['optionName' => 'configValue0', 'operation' => 'unset'], $definition);
+        $output = new BufferedOutput();
+
+        $this->callConfigure();
+        $this->callInitialize($input, $output);
+        $this->callExecute($input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+        $expected = [
+            [
+                'autocomplete' => 'configValue0 unset',
+                'title'        => 'Remove configValue0',
+                'subtitle'     => 'Remove configValue0 with "test0"',
+                'valid'        => true,
+            ],
+        ];
+
+        $this->assertNotEmpty($json['items']);
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
+    public function testCanDisplayCurrentValueOfAScalarConfigForSetValueWithWhitespacesOperation()
+    {
+        copy('tests/fixtures/configure_parameters.env', 'tests/tmp/.env');
+        $this->loadContainer('configure_parameters_array.yml');
+        $definition = $this->sut->getDefinition();
+
+        $input = new ArrayInput([
+            'optionName' => 'configValue0',
+            'operation'  => 'set',
+            'key'        => 'test1',
+            'value'      => ['abc', 'def'],
+        ], $definition);
+        $output = new BufferedOutput();
+
+        $this->callConfigure();
+        $this->callInitialize($input, $output);
+        $this->callExecute($input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+        $expected = [
+            [
+                'autocomplete' => 'configValue0 set test1 abc def',
+                'title'        => 'configValue0 = "test1 abc def"',
+                'subtitle'     => 'Set configValue0 from "test0" to "test1 abc def"',
+                'valid'        => true,
+            ],
+        ];
+
+        $this->assertNotEmpty($json['items']);
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
+    public function testCanDisplayArrayOperationsForGivenConfigVar()
+    {
+        copy('tests/fixtures/configure_parameters.env', 'tests/tmp/.env');
+        $this->loadContainer('configure_parameters_array.yml');
+        $definition = $this->sut->getDefinition();
+
+        $input = new ArrayInput(['optionName' => 'configValue2'], $definition);
+        $output = new BufferedOutput();
+
+        $this->callConfigure();
+        $this->callInitialize($input, $output);
+        $this->callExecute($input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+        $expected = [
+            [
+                'autocomplete' => 'configValue2 set',
+                'title'        => 'Set key for configValue2[]',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'configValue2 remove',
+                'title'        => 'Remove key from configValue2[]',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'configValue2 unset',
+                'title'        => 'Unset configValue2[]',
+                'valid'        => false,
+            ],
+        ];
+
+        $this->assertNotEmpty($json['items']);
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
+    public function testCanDisplayConfigKeysForGivenConfigVarWhenUsingSetWithoutOptionSelectionOperation()
+    {
+        copy('tests/fixtures/configure_parameters_array_existing_two_entries.env', 'tests/tmp/.env');
+        $this->loadContainer('configure_parameters_array.yml');
+        $definition = $this->sut->getDefinition();
+
+        $input = new ArrayInput(['optionName' => 'configValue2', 'operation' => 'set'], $definition);
+        $output = new BufferedOutput();
+
+        $this->callConfigure();
+        $this->callInitialize($input, $output);
+        $this->callExecute($input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+        $expected = [
+            [
+                'autocomplete' => 'configValue2 set configKey0',
+                'title'        => 'configValue2[configKey0] = ""',
+                'subtitle'     => 'Set configKey0 for Parameter configValue2 from "test0" to ""',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'configValue2 set configKey4',
+                'title'        => 'configValue2[configKey4] = ""',
+                'subtitle'     => 'Set configKey4 for Parameter configValue2 from "test4" to ""',
+                'valid'        => false,
+            ],
+        ];
+
+        $this->assertNotEmpty($json['items']);
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
+    public function testCanDisplayOperationSetToExecuteWithGivenArrayEntryWithEmptyStringForExistingArray()
+    {
+        copy('tests/fixtures/configure_parameters_array_existing.env', 'tests/tmp/.env');
+        $this->loadContainer('configure_parameters_array.yml');
+        $definition = $this->sut->getDefinition();
+
+        $input = new ArrayInput(['optionName' => 'configValue2', 'operation' => 'set', 'key' => 'configKey0'],
+            $definition);
+        $output = new BufferedOutput();
+
+        $this->callConfigure();
+        $this->callInitialize($input, $output);
+        $this->callExecute($input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+        $expected = [
+            [
+                'autocomplete' => 'configValue2 set configKey0',
+                'title'        => 'configValue2[configKey0] = ""',
+                'subtitle'     => 'Set configKey0 for Parameter configValue2 from "test0" to ""',
+                'valid'        => true,
+            ],
+        ];
+
+        $this->assertNotEmpty($json['items']);
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
+    public function testCanDisplayOperationSetToExecuteWithGivenArrayEntryWithStringWithSpacesForExistingArray()
+    {
+        copy('tests/fixtures/configure_parameters_array_existing.env', 'tests/tmp/.env');
+        $this->loadContainer('configure_parameters_array.yml');
+        $definition = $this->sut->getDefinition();
+
+        $input = new ArrayInput([
+            'optionName' => 'configValue2',
+            'operation'  => 'set',
+            'key'        => 'configKey0',
+            'value'      => "test0 abc",
+        ],
+            $definition);
+        $output = new BufferedOutput();
+
+        $this->callConfigure();
+        $this->callInitialize($input, $output);
+        $this->callExecute($input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+        $expected = [
+            [
+                'autocomplete' => 'configValue2 set configKey0 test0 abc',
+                'title'        => 'configValue2[configKey0] = "test0 abc"',
+                'subtitle'     => 'Set configKey0 for Parameter configValue2 from "test0" to "test0 abc"',
+                'valid'        => true,
+            ],
+        ];
+
+        $this->assertNotEmpty($json['items']);
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
+    public function testCanDisplayOperationRemoveToExecuteWithGivenArrayEntryForExistingArray()
+    {
+        copy('tests/fixtures/configure_parameters_array_existing.env', 'tests/tmp/.env');
+        $this->loadContainer('configure_parameters_array.yml');
+        $definition = $this->sut->getDefinition();
+
+        $input = new ArrayInput([
+            'optionName' => 'configValue2',
+            'operation'  => 'remove',
+            'key'        => 'configKey0',
+        ],
+            $definition);
+        $output = new BufferedOutput();
+
+        $this->callConfigure();
+        $this->callInitialize($input, $output);
+        $this->callExecute($input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+        $expected = [
+            [
+                'autocomplete' => 'configValue2 remove configKey0',
+                'title'        => 'Remove configValue2[configKey0]',
+                'subtitle'     => 'Remove configKey0 for Parameter configValue2 with "test0"',
+                'valid'        => true,
+            ],
+        ];
+
+        $this->assertNotEmpty($json['items']);
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
+    public function testCanDisplayOperationUnsetToExecuteWithExistingArray()
+    {
+        copy('tests/fixtures/configure_parameters_array_existing_two_entries.env', 'tests/tmp/.env');
+        $this->loadContainer('configure_parameters_array.yml');
+        $definition = $this->sut->getDefinition();
+
+        $input = new ArrayInput([
+            'optionName' => 'configValue2',
+            'operation'  => 'unset',
+        ],
+            $definition);
+        $output = new BufferedOutput();
+
+        $this->callConfigure();
+        $this->callInitialize($input, $output);
+        $this->callExecute($input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+        $expected = [
+            [
+                'autocomplete' => 'configValue2 unset',
+                'title'        => 'Unset configValue2[]',
+                'subtitle'     => 'Unset configValue2 with "{"configKey0":"test0","configKey4":"test4"}"',
+                'valid'        => true,
+            ],
+        ];
+
+        $this->assertNotEmpty($json['items']);
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
+    public function testWillIgnoreExecuteFlagWhenNoKeyIsGivenFromSetOperationWithExistingArray()
+    {
+        copy('tests/fixtures/configure_parameters_array_existing_two_entries.env', 'tests/tmp/.env');
+        $this->loadContainer('configure_parameters_array.yml');
+        $definition = $this->sut->getDefinition();
+
+        $input = new ArrayInput(['--execute' => true, 'optionName' => 'configValue2', 'operation' => 'set'],
+            $definition);
+        $output = new BufferedOutput();
+
+        $this->callConfigure();
+        $this->callInitialize($input, $output);
+        $this->callExecute($input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+        $expected = [
+            [
+                'autocomplete' => 'configValue2 set configKey0',
+                'title'        => 'configValue2[configKey0] = ""',
+                'subtitle'     => 'Set configKey0 for Parameter configValue2 from "test0" to ""',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'configValue2 set configKey4',
+                'title'        => 'configValue2[configKey4] = ""',
+                'subtitle'     => 'Set configKey4 for Parameter configValue2 from "test4" to ""',
+                'valid'        => false,
+            ],
+        ];
+
+        $this->assertNotEmpty($json['items']);
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
+    public function testWillIgnoreExecuteFlagWhenNoKeyIsGivenFromRemoveOperationWithExistingArray()
+    {
+        copy('tests/fixtures/configure_parameters_array_existing_two_entries.env', 'tests/tmp/.env');
+        $this->loadContainer('configure_parameters_array.yml');
+        $definition = $this->sut->getDefinition();
+
+        $input = new ArrayInput(['--execute' => true, 'optionName' => 'configValue2', 'operation' => 'remove'],
+            $definition);
+        $output = new BufferedOutput();
+
+        $this->callConfigure();
+        $this->callInitialize($input, $output);
+        $this->callExecute($input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+        $expected = [
+            [
+                'autocomplete' => 'configValue2 remove configKey0',
+                'title'        => 'Remove configValue2[configKey0]',
+                'subtitle'     => 'Remove configKey0 for Parameter configValue2 with "test0"',
+                'valid'        => false,
+            ],
+            [
+                'autocomplete' => 'configValue2 remove configKey4',
+                'title'        => 'Remove configValue2[configKey4]',
+                'subtitle'     => 'Remove configKey4 for Parameter configValue2 with "test4"',
+                'valid'        => false,
+            ],
+        ];
+
+        $this->assertNotEmpty($json['items']);
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
     protected function callConfigure()
     {
         $this->sut = new ConfigureCommand();
