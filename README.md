@@ -214,6 +214,7 @@ echo ${var}
 echo $_ENV['var'];
 ```
 #### Config command
+Activate "Argument Optional" instead of "Argument Required". 
 The script for the config looks like this:
  ```php
 $alfredArgv = "bin/console config {query}";

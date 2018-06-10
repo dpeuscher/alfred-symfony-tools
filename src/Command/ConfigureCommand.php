@@ -109,9 +109,7 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
                     $selectedOperation = $this->getSelectedArgument($input, 'operation');
                     if ($selectedOperation) {
                         $vars = $this->envEditor->overview()['values'][$selectedOption] ?? json_encode([]);
-                        if (substr($vars, 0, 1) == '"' && substr($vars, -1, 1) == '"') {
-                            $vars = str_replace(['\"', '\\\\'], ['"', '\\'], (trim($vars, '"')));
-                        }
+                        $vars = str_replace(['\"', '\\\\'], ['"', '\\'], (trim($vars, '"')));
                         $vars = json_decode($vars, true);
                         $keys = [];
                         foreach ($vars as $key => $value) {
@@ -179,9 +177,7 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
         switch ($this->parameterTypes[$arguments['optionName']]) {
             case 'array':
                 $vars = $this->envEditor->overview()['values'][$arguments['optionName']] ?? json_encode([]);
-                if (substr($vars, 0, 1) == '"' && substr($vars, -1, 1) == '"') {
-                    $vars = str_replace(['\"', '\\\\'], ['"', '\\'], (trim($vars, '"')));
-                }
+                $vars = str_replace(['\"', '\\\\'], ['"', '\\'], (trim($vars, '"')));
                 switch ($arguments['operation']) {
                     case 'set':
                         if (is_string($arguments['key'])) {
@@ -275,9 +271,7 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
     protected function handleOperationsForArrayOption(array $arguments): array
     {
         $vars = $this->envEditor->overview()['values'][$arguments['optionName']] ?? json_encode([]);
-        if (substr($vars, 0, 1) == '"' && substr($vars, -1, 1) == '"') {
-            $vars = str_replace(['\"', '\\\\'], ['"', '\\'], (trim($vars, '"')));
-        }
+        $vars = str_replace(['\"', '\\\\'], ['"', '\\'], (trim($vars, '"')));
         $vars = json_decode($vars, true);
         switch ($arguments['operation']) {
             case 'set':
