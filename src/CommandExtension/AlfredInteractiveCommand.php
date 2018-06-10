@@ -152,7 +152,7 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
         }
         $argument = is_string($input->getArgument($name)) ? trim($input->getArgument($name),
             "'") : $input->getArgument($name);
-        if (empty($argument)) {
+        if (is_null($argument)) {
             return $this->acFieldsList[$name];
         }
         $matches = [];
@@ -276,7 +276,7 @@ class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAw
                 $selectedArgument = is_string($input->getArgument($argument)) ? trim($input->getArgument($argument),
                     "'") : (is_array($input->getArgument($argument)) ? implode(' ',
                     $input->getArgument($argument)) : $input->getArgument($argument));
-                if ($selectedArgument) {
+                if (!is_null($selectedArgument) && $selectedArgument !== '') {
                     $setParameters[] = $argument;
                     $arguments[$argument] = $selectedArgument;
                 }

@@ -577,6 +577,35 @@ class AlfredInteractiveCommandTest extends TestCase
         }
     }
 
+    public function testHandleStringZeroAsSelection()
+    {
+        $input = $this->setupNumericArguments(['test' => '0']);
+
+        $output = new BufferedOutput();
+
+        $this->command->addInputHandler(['test']);
+
+        $this->command->setLogger(new NullLogger());
+        $this->runProtectedExecute->call($this->command, $input, $output);
+
+        $json = json_decode($output->fetch(), JSON_OBJECT_AS_ARRAY);
+
+        $expected = [
+            [
+                'autocomplete' => '0',
+                'title'        => '0',
+                'valid'        => false,
+            ],
+        ];
+
+        $this->assertNotEmpty($json['items']);
+        foreach ($json['items'] as $nr => $entry) {
+            foreach ($expected[$nr] as $key => $value) {
+                $this->assertEquals($value, $entry[$key]);
+            }
+        }
+    }
+
     private function setupArguments($values): ArrayInput
     {
         $this->command->addArgument('test', InputArgument::OPTIONAL, '', null, [
@@ -641,6 +670,13 @@ class AlfredInteractiveCommandTest extends TestCase
             new InputArgument('test2'),
             new InputArgument('test3'),
         ]));
+        return $input;
+    }
+
+    private function setupNumericArguments($values): ArrayInput
+    {
+        $this->command->addArgument('test', InputArgument::OPTIONAL, '', null, ['0', '1', '2',]);
+        $input = new ArrayInput($values, new InputDefinition([new InputArgument('test'),]));
         return $input;
     }
 }
