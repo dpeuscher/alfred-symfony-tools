@@ -15,7 +15,7 @@
             * [Environment variables](#environment-variables)
             * [Config command](#config-command)
 
-<!-- Added by: dominikpeuscher, at: Sun Jun 10 20:19:32 CEST 2018 -->
+<!-- Added by: dominikpeuscher, at: Sun Jun 10 20:21:37 CEST 2018 -->
 
 <!--te-->
 
@@ -211,11 +211,10 @@ echo ${var}
 ```
 - PHP
 ```php
-<?php
 echo $_ENV['var'];
 ```
 #### Config command
- - The script for the config looks like this:
+The script for the config looks like this:
  ```php
 $alfredArgv = "bin/console config {query}";
 
