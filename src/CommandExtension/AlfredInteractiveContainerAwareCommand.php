@@ -12,7 +12,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @category  alfred-symfony-tools
  * @copyright Copyright (c) 2018 Dominik Peuscher
  */
-class AlfredInteractiveContainerAwareCommand extends AlfredInteractiveCommand
+abstract class AlfredInteractiveContainerAwareCommand extends AlfredInteractiveCommand
 {
     /**
      * @var ContainerInterface|null

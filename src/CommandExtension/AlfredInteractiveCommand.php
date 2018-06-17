@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @category  alfred-symfony-tools
  * @copyright Copyright (c) 2018 Dominik Peuscher
  */
-class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAwareInterface
+abstract class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
