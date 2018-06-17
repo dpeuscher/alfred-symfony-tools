@@ -7,7 +7,7 @@ use Dpeuscher\AlfredSymfonyTools\Alfred\WorkflowResult;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LogLevel;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @category  alfred-symfony-tools
  * @copyright Copyright (c) 2018 Dominik Peuscher
  */
-abstract class AlfredInteractiveCommand extends ContainerAwareCommand implements LoggerAwareInterface
+abstract class AlfredInteractiveCommand extends Command implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
@@ -27,7 +27,7 @@ abstract class AlfredInteractiveCommand extends ContainerAwareCommand implements
     /**
      * @var string[]
      */
-    private $acFields = [];
+    protected $acFields = [];
 
     /**
      * @var string[]
@@ -47,7 +47,7 @@ abstract class AlfredInteractiveCommand extends ContainerAwareCommand implements
     /**
      * @var string[][]
      */
-    private $acFieldsList = [];
+    protected $acFieldsList = [];
 
     /**
      * @var string[][]

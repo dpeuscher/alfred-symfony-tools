@@ -36,7 +36,9 @@ class AlfredInteractiveContainerAwareCommandTest extends TestCase
 
     public function setUp()
     {
-        $this->sut = new AlfredInteractiveContainerAwareCommand();
+        $this->sut = new class extends AlfredInteractiveContainerAwareCommand
+        {
+        };
         $this->runProtectedInitialize = function (InputInterface $input, OutputInterface $output) {
             /** @noinspection PhpUndefinedMethodInspection */
             return $this->initialize($input, $output);

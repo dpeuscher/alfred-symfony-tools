@@ -41,7 +41,9 @@ class AlfredInteractiveCommandTest extends TestCase
 
     public function setup()
     {
-        $this->command = new AlfredInteractiveCommand();
+        $this->command = new class extends AlfredInteractiveCommand
+        {
+        };
         $this->command->setWorkflowHelper(new WorkflowHelper('./', new Workflow()));
         $this->getPrivateFields = function ($field) {
             return $this->$field;
@@ -276,7 +278,9 @@ class AlfredInteractiveCommandTest extends TestCase
 
     public function testAddInputHandlerWithoutWorkflowHelper()
     {
-        $this->command = new AlfredInteractiveCommand();
+        $this->command = new class extends AlfredInteractiveCommand
+        {
+        };
 
         $input = $this->setupArguments(['test' => 'abc', 'test2' => 'ABC']);
 
