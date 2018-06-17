@@ -231,4 +231,4 @@ include 'bin/alfred.php';
 The rest of the settings of the "Run Script" should look like the "Script Input" item.
 
 #### Example
-Find a proof-of-concept here: [dpeuscher/movie-rating](https://github.com/dpeuscher/movie-rating)
+Find a proof-of-concept here: [dpeuscher/alfred-movie-rating](https://github.com/dpeuscher/alfred-movie-rating)
