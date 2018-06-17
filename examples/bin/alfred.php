@@ -16,6 +16,17 @@ $argv = $_SERVER['argv'];
 
 set_time_limit(0);
 
+if (version_compare(PHP_VERSION, '7.1') < 0) {
+    echo '{"items": [
+        {
+            "title": "Please install at least PHP 7.1",
+            "subtitle": "You need a PHP version of at least 7.1. You have ' . PHP_VERSION . ' installed. Please upgrade.",
+            "valid": false,
+        }
+    ]}';
+    exit;
+}
+
 require __DIR__ . '/../vendor/autoload.php';
 
 if (!class_exists(Application::class)) {
