@@ -222,9 +222,9 @@ $alfredArgv = "bin/console config {query}";
 
 include 'bin/alfred.php';
  ```
-It is connected to a "Run Script" item wit the following script:
+It is connected to a "Run Script" item with the following script:
 ```php
-$alfredArgv = "bin/console -vvv config -x {query}";
+$alfredArgv = "bin/console config -x {query}";
 
 include 'bin/alfred.php';
 ```
