@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/dpeuscher/alfred-symfony-tools.svg?branch=master)](https://travis-ci.org/dpeuscher/alfred-symfony-tools) [![codecov](https://codecov.io/gh/dpeuscher/alfred-symfony-tools/branch/master/graph/badge.svg)](https://codecov.io/gh/dpeuscher/alfred-symfony-tools)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fdpeuscher%2Falfred-symfony-tools.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fdpeuscher%2Falfred-symfony-tools?ref=badge_shield)
 
 <!--ts-->
    * [alfred-symfony-tools](#alfred-symfony-tools)
@@ -232,3 +233,7 @@ The rest of the settings of the "Run Script" should look like the "Script Input"
 
 #### Example
 Find a proof-of-concept here: [dpeuscher/alfred-movie-rating](https://github.com/dpeuscher/alfred-movie-rating)
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fdpeuscher%2Falfred-symfony-tools.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fdpeuscher%2Falfred-symfony-tools?ref=badge_large)
