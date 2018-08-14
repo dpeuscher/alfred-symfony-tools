@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "joetannenbaum/alfred-workflow",
-            "version": "0.1.1",
+            "version": "0.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/joetannenbaum/alfred-workflow.git",
-                "reference": "d58758637aa80082f6f54879b51f6ad9e99365f5"
+                "reference": "88e042db9cad0c95ab80e87c69d7f1e15340e7ac"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/joetannenbaum/alfred-workflow/zipball/d58758637aa80082f6f54879b51f6ad9e99365f5",
-                "reference": "d58758637aa80082f6f54879b51f6ad9e99365f5",
+                "url": "https://api.github.com/repos/joetannenbaum/alfred-workflow/zipball/88e042db9cad0c95ab80e87c69d7f1e15340e7ac",
+                "reference": "88e042db9cad0c95ab80e87c69d7f1e15340e7ac",
                 "shasum": ""
             },
             "require": {
@@ -43,7 +43,7 @@
                 }
             ],
             "description": "PHP helper for creating Alfred Workflows.",
-            "time": "2017-03-29T03:08:45+00:00"
+            "time": "2018-08-14T14:25:53+00:00"
         },
         {
             "name": "makbari/dot-env-editor",
