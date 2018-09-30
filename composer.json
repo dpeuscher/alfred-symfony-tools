@@ -6,6 +6,7 @@
         "php": "^7.1",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "ext-json": "*",
         "symfony/framework-bundle": "^4.0",
         "joetannenbaum/alfred-workflow": "^0.1.1",
         "symfony/console": "^4.1",

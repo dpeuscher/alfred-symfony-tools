@@ -30,6 +30,11 @@ abstract class AlfredInteractiveCommand extends Command implements LoggerAwareIn
     protected $acFields = [];
 
     /**
+     * @var string[][]
+     */
+    protected $acFieldsList = [];
+
+    /**
      * @var string[]
      */
     private $arguments = [];
@@ -43,11 +48,6 @@ abstract class AlfredInteractiveCommand extends Command implements LoggerAwareIn
      * @var string[]
      */
     private $argumentFunctionsCombinations = [];
-
-    /**
-     * @var string[][]
-     */
-    protected $acFieldsList = [];
 
     /**
      * @var string[][]
@@ -91,9 +91,9 @@ abstract class AlfredInteractiveCommand extends Command implements LoggerAwareIn
 
     public function getArgumentIdentifier(InputInterface $input, string $name)
     {
-        if (!in_array($name, $this->acFields)) {
-            return is_string($input->getArgument($name)) ? trim($input->getArgument($name),
-                "'") : $input->getArgument($name);
+        if (!\in_array($name, $this->acFields)) {
+            return \is_string($input->getArgument($name)) ? trim(/** @scrutinizer ignore-type */
+                $input->getArgument($name), "'") : $input->getArgument($name);
         }
         if (empty($this->acFieldsList[$name]) && !$this->acFieldAllowNew[$name]) {
             $this->log(LogLevel::NOTICE, 'There are no possible values for argument ' . $name . ' configured');
@@ -150,9 +150,10 @@ abstract class AlfredInteractiveCommand extends Command implements LoggerAwareIn
             $this->log(LogLevel::NOTICE, 'There are no possible values for argument ' . $name . ' configured');
             return [];
         }
-        $argument = is_string($input->getArgument($name)) ? trim($input->getArgument($name),
+        $argument = \is_string($input->getArgument($name)) ? trim(/** @scrutinizer ignore-type */
+            $input->getArgument($name),
             "'") : $input->getArgument($name);
-        if (is_null($argument) || $argument === '') {
+        if ($argument === null || $argument === '') {
             return $this->acFieldsList[$name];
         }
         $matches = [];
@@ -160,7 +161,7 @@ abstract class AlfredInteractiveCommand extends Command implements LoggerAwareIn
             if ($key == $argument) {
                 return [$key => $value];
             }
-            if (!$this->acFieldAllowNew[$name] && strstr(str_replace(' ', '', $value), $argument) !== false) {
+            if (!$this->acFieldAllowNew[$name] && false !== strpos(str_replace(' ', '', $value), $argument)) {
                 $matches[$key] = $value;
             }
         }
@@ -181,15 +182,15 @@ abstract class AlfredInteractiveCommand extends Command implements LoggerAwareIn
 
     public function addInputHandler(array $setParameters, ?callable $callable = null)
     {
-        if (!isset($callable)) {
+        if ($callable === null) {
             $callable = [$this, 'genericParameterHandler'];
         }
-        if (in_array($setParameters, $this->argumentFunctionsCombinations)) {
-            $key = array_search($setParameters, $this->argumentFunctionsCombinations);
+        if (\in_array($setParameters, $this->argumentFunctionsCombinations, true)) {
+            $key = array_search($setParameters, $this->argumentFunctionsCombinations, true);
             $this->argumentFunctionsCombinations[$key] = $setParameters;
             $this->argumentFunctions[$key] = $callable;
         } else {
-            $count = count($this->argumentFunctionsCombinations);
+            $count = \count($this->argumentFunctionsCombinations);
             $this->argumentFunctionsCombinations[$count] = $setParameters;
             $this->argumentFunctions[$count] = $callable;
         }
@@ -202,7 +203,7 @@ abstract class AlfredInteractiveCommand extends Command implements LoggerAwareIn
      */
     protected function log(string $level, string $message, array $context = [])
     {
-        if (isset($this->logger)) {
+        if ($this->logger !== null) {
             $this->logger->log($level, $message, $context);
         } else {
             //@codeCoverageIgnoreStart
@@ -222,9 +223,9 @@ abstract class AlfredInteractiveCommand extends Command implements LoggerAwareIn
 
     protected function genericParameterHandler($arguments)
     {
-        list($dynamicArguments, $command) = $this->buildCommandFromArguments($arguments);
+        [$dynamicArguments, $command] = $this->buildCommandFromArguments($arguments);
         $results = [];
-        if (isset($dynamicArguments)) {
+        if ($dynamicArguments !== null) {
             foreach ($arguments[$dynamicArguments] as $key => $dynamicArgument) {
                 $result = new WorkflowResult();
                 $result->setValid(false);
@@ -257,15 +258,15 @@ abstract class AlfredInteractiveCommand extends Command implements LoggerAwareIn
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        if (!isset($this->workflowHelper)) {
+        if ($this->workflowHelper === null) {
             $this->workflowHelper = new WorkflowHelper();
         }
         $setParameters = [];
         $arguments = [];
         foreach ($this->arguments as $argument) {
-            if (in_array($argument, $this->acFields)) {
+            if (\in_array($argument, $this->acFields)) {
                 $selectedArgument = $this->getArgumentIdentifier($input, $argument);
-                if (!is_null($selectedArgument)) {
+                if ($selectedArgument !== null) {
                     $setParameters[] = $argument;
                     $arguments[$argument . '.key'] = $selectedArgument;
                     $arguments[$argument] = current($this->getArgumentMatches($input, $argument));
@@ -273,16 +274,16 @@ abstract class AlfredInteractiveCommand extends Command implements LoggerAwareIn
                     $arguments[$argument] = $this->getArgumentMatches($input, $argument);
                 }
             } else {
-                $selectedArgument = is_string($input->getArgument($argument)) ? trim($input->getArgument($argument),
-                    "'") : (is_array($input->getArgument($argument)) ? implode(' ',
-                    $input->getArgument($argument)) : $input->getArgument($argument));
-                if (!is_null($selectedArgument) && $selectedArgument !== '') {
+                $selectedArgument = \is_string($input->getArgument($argument)) ? trim(/** @scrutinizer ignore-type */
+                    $input->getArgument($argument), "'") : (\is_array($input->getArgument($argument)) ?
+                    implode(' ', $input->getArgument($argument)) : $input->getArgument($argument));
+                if ($selectedArgument !== null && $selectedArgument !== '') {
                     $setParameters[] = $argument;
                     $arguments[$argument] = $selectedArgument;
                 }
             }
         }
-        $key = array_search($setParameters, $this->argumentFunctionsCombinations);
+        $key = array_search($setParameters, $this->argumentFunctionsCombinations, true);
         $callable = [$this, 'genericParameterHandler'];
         $genericResults = $callable($arguments);
         $return = $genericResults;
@@ -291,15 +292,15 @@ abstract class AlfredInteractiveCommand extends Command implements LoggerAwareIn
             $arguments['genericResults'] = $genericResults;
             $return = $callable($arguments);
         }
-        if (is_array($return)) {
+        if (\is_array($return)) {
             foreach ($return as $result) {
                 if (!$result instanceof WorkflowResult) {
-                    throw new \Exception("There should only be Workflows returned");
+                    throw new \RuntimeException('There should only be Workflows returned');
                 }
                 $this->workflowHelper->applyResult($result);
             }
-        } elseif (!is_null($return)) {
-            throw new \Exception("There should only be Workflows returned");
+        } elseif ($return !== null) {
+            throw new \RuntimeException('There should only be Workflows returned');
         }
         $output->write($this->workflowHelper);
     }
@@ -313,16 +314,16 @@ abstract class AlfredInteractiveCommand extends Command implements LoggerAwareIn
         $dynamicArguments = null;
         $command = [];
         foreach ($arguments as $argument => $value) {
-            if (substr($argument, -4, 4) == '.key') {
+            if (substr($argument, -4, 4) === '.key') {
                 continue;
             }
-            if (is_array($value)) {
-                if (in_array($argument, $this->acFields)) {
+            if (\is_array($value)) {
+                if (\in_array($argument, $this->acFields, true)) {
                     $dynamicArguments = $argument;
                 }
                 break;
             }
-            $command[$argument] = isset($arguments[$argument . '.key']) ? $arguments[$argument . '.key'] : $value;
+            $command[$argument] = $arguments[$argument . '.key'] ?? $value;
         }
         return [$dynamicArguments, $command];
     }

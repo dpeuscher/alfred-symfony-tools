@@ -118,7 +118,7 @@ class ConfigureCommand extends AlfredInteractiveContainerAwareCommand
                         switch ($selectedOperation) {
                             case 'set':
                                 $selectedKey = $input->getArgument('key');
-                                if (!is_null($selectedKey) && !isset($keys[$selectedKey])) {
+                                if (!empty($selectedKey) && !isset($keys[$selectedKey])) {
                                     $keys = [(string)$selectedKey => (string)$selectedKey] + $keys;
                                 }
                                 $this->addArgumentsAllowedValues('key', $keys, true);
