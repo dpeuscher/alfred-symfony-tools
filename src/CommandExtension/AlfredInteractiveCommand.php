@@ -121,13 +121,13 @@ abstract class AlfredInteractiveCommand extends Command implements LoggerAwareIn
                 $words = explode(' ', $value);
                 $keyCandidate = $key;
 
-                for ($i = 0; $i < count($words); $i++) {
-                    $keyCandidate = implode(array_slice($words, 0, $i + 1));
+                for ($i = 0, $iMax = \count($words); $i < $iMax; $i++) {
+                    $keyCandidate = implode(\array_slice($words, 0, $i + 1));
                     foreach ($fields as $searchString) {
                         if ($searchString === $value) {
                             continue;
                         }
-                        if (stristr(str_replace(' ', '', $searchString), $keyCandidate) !== false) {
+                        if (false !== stripos(str_replace(' ', '', $searchString), $keyCandidate)) {
                             continue 2;
                         }
                     }
@@ -143,7 +143,7 @@ abstract class AlfredInteractiveCommand extends Command implements LoggerAwareIn
     public function getArgumentMatches(InputInterface $input, string $name)
     {
         $this->updateBestMatchKeys();
-        if (!in_array($name, $this->acFields)) {
+        if (!\in_array($name, $this->acFields)) {
             return [];
         }
         if (empty($this->acFieldsList[$name]) && !$this->acFieldAllowNew[$name]) {
@@ -276,7 +276,8 @@ abstract class AlfredInteractiveCommand extends Command implements LoggerAwareIn
             } else {
                 $selectedArgument = \is_string($input->getArgument($argument)) ? trim(/** @scrutinizer ignore-type */
                     $input->getArgument($argument), "'") : (\is_array($input->getArgument($argument)) ?
-                    implode(' ', $input->getArgument($argument)) : $input->getArgument($argument));
+                    implode(' ', /** @scrutinizer ignore-type */
+                        $input->getArgument($argument)) : $input->getArgument($argument));
                 if ($selectedArgument !== null && $selectedArgument !== '') {
                     $setParameters[] = $argument;
                     $arguments[$argument] = $selectedArgument;

@@ -40,7 +40,7 @@ class WorkflowHelper
      * @return string|null
      * @see https://stackoverflow.com/questions/48087867/php-output-images-with-fixed-filesize
      */
-    function getImage($url)
+    public function getImage($url)
     {
         $localPath = $this->cacheDir . md5($url) . '.jpg';
         if (!file_exists($localPath)) {
